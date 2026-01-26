@@ -8,3 +8,9 @@ _minted-book
 *.synctex.gz
 *.bbl
 *.blg
+*.toc
+chapter/web
+_minted-*
+prompt
+figure/bak
+目次案.txt
