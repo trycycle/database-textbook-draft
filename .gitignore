@@ -9,9 +9,11 @@
 *.blg
 *.toc
 chapter/web
+_minted
 _minted-*
 prompt
 figure/bak
 目次案.txt
 affinity
 .DS_Store
+code
