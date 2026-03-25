@@ -42,6 +42,9 @@
     right=3.5mm,
     title={#1},
     toptitle=0.75mm,
+    % --- 段落頭字下げのため以下の2行を追加 ---
+    before upper={\indent}, % 最初の段落を強制的に字下げ
+    parbox=false,            % 通常の段落挙動を維持
   }
 }
 
