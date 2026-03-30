@@ -1,0 +1,1229 @@
+\chapter{SQL -- その2}\label{chap:sql-part2}
+
+\ref{chap:sql-part1}章で解説したSQLは，1つのテーブルに対する問い合わせ（単純質問）を対象としていました．
+しかし，関係データベースを用いたデータ管理や分析の現場では，問い合わせ時に参照するテーブルが1つしかないことはむしろ稀です．
+データを正しく矛盾なく管理するためには，\ref{chap:er-model}章や\ref{chap:normalization}章で解説したような方法を用いて，データを複数のテーブルに分割して管理するからです．
+そのため，関係データベースから欲しいデータを抽出するには，\strong{複数のテーブルを組み合わせた問い合わせ}を行う必要があります．
+
+本章では，複数のテーブルを組み合わせた問い合わせを行うために，以下を解説します．
+\begin{itemize}
+    \item 集合演算
+    \item 結合演算
+    \item 副問い合わせ（サブクエリ）
+\end{itemize}
+
+
+\section{準備}
+\ref{chap:sql-part1}章と同様，以下の説明では，SQLite\footnote{\url{https://www.sqlite.org/index.html}}と解説用に作成した仮想データを用いて，SQLについて解説します．
+
+本章では，SQL解説用に著者が作成した仮想データを用います．
+用意した仮想データは，こちらのURL（\url{https://github.com/trycycle/database-textbook/xxxx}）よりダウンロードできます．
+ダウンロードしたファイル\graybox{sql2-example.db}はSQLiteのデータベースファイルです．
+DB Browser for SQLiteなどのSQLiteクライアントソフトを用いて，本章用の関係データベースを操作することができます．
+
+ダウンロードしたデータは，\ref{chap:sql-part1}章で取り上げた小売店ショッピングサイトを管理するための関係データベースを拡張したものです．
+この関係データベースには，以下のテーブルが格納されています．
+\begin{itemize}
+    \item 「商品」テーブル：商品ID，商品名，カテゴリ，メーカー，価格，在庫数」を属性として持つテーブル
+    \item 「ユーザ」テーブル：ユーザID，氏名，email，住所，アカウント作成日」を属性として持つテーブル
+    \item 「注文」テーブル：注文ID，ユーザID，商品ID，数量，注文日を属性として持つテーブル．ユーザIDおよび商品IDは，それぞれ「ユーザ」テーブルのユーザID，「商品」テーブルの商品IDに対する外部キーとなっている
+    \item 「関西人気商品」テーブル：関西地区で売り上げの多い上位50件の商品を抽出したテーブル．「商品」テーブルと同じ属性を持つ
+    \item 「関東人気商品」テーブル：関東地区で売り上げの多い上位50件の商品を抽出したテーブル．「商品」テーブルと同じ属性を持つ
+\end{itemize}
+
+参考のため，「ユーザ」テーブルと「注文」テーブルの内容を表\ref{tab:user-table}，表\ref{tab:order-table}に示します．
+\begin{table}[tb]
+    \centering
+    \caption{「ユーザ」テーブル}
+    \scalebox{0.9}{
+    \begin{tabular}{llllr}
+    \toprule
+    \textbf{ユーザID} & \textbf{氏名} & \textbf{email} & \textbf{住所} & \textbf{アカウント作成日} \\ \midrule
+U001 & 橋本 さゆり & suzukirei@gmail.com & 千葉県 & 2023 \\
+U002 & 林 淳 & rgoto@gmail.com & 鳥取県 & 2022 \\
+U003 & 池田 桃子 & junokada@gmail.com & 山口県 & 2025 \\
+U004 & 三浦 裕樹 & qtakahashi@yahoo.com & 京都府 & 2025 \\
+U005 & 高橋 明美 & naoto36@yahoo.com & 茨城県 & 2026 \\
+     & & $\vdots$ & & \\
+U100 & 高橋 桃子 & manabuito@hotmail.com & 大阪府 & 2026 \\
+     \bottomrule
+    \end{tabular}
+    }
+    \label{tab:user-table}
+\end{table}
+
+\begin{table}[tb]
+    \centering
+    \caption{「注文」テーブル}
+    \scalebox{0.9}{
+    \begin{tabular}{lllrl}
+    \toprule
+    \textbf{注文ID} & \textbf{ユーザID} &　\textbf{商品ID} &\textbf{数量} & \textbf{注文日} \\
+    \midrule
+O0001 & U006 & P182 & 1 & 2024-02-10 \\
+O0002 & U016 & P276 & 2 & 2022-10-20 \\
+O0003 & U057 & P178 & 5 & 2025-01-03 \\
+O0004 & U021 & P361 & 10 & 2023-10-29 \\
+O0005 & U069 & P311 & 7 & 2024-12-26 \\
+     &  & $\vdots$ & & \\
+O2000 & U092 & P396 & 7 & 2026-02-27 \\
+     \bottomrule
+    \end{tabular}
+    }
+    \label{tab:order-table}
+\end{table}
+
+以後，上記関係データベースが手元にあると想定して，SQLの使い方を説明します．
+
+
+\section{集合演算}
+高校数学で学習した「集合と論理」を思い出しましょう．
+\begin{quotation}
+$A=\{1, 2, 3, 4, 9\}$，$B=\{3, 4, 7\}$のとき，AとBの共通部分$A \cap B$は$\{3, 4\}$となる
+\end{quotation}
+のようなことを勉強したと思います．
+\strong{集合演算}とは，上記のように2つの集合から別の集合を作り出す演算です．
+高校数学で習った集合演算では主として数値の集合を対象としていたと思いますが，
+関係データベースの集合演算において対象となるのは\strong{レコード（行）の集合}です．
+関係データベースにおける集合演算はレコードを増やしたり減らしたりする，\strong{テーブルを縦方向にいじる操作}です．
+関係データベースにおける集合演算の振る舞いは，直感的には高校数学の集合演算と変わりません．
+そもそも，関係データベースの理論的な基盤である「関係モデル」は，数学的な集合論を土台として提唱されました．
+そのため，SQLによるテーブル操作は，根本的には集合や関係に対する数学的な演算そのものなのです．
+
+
+\begin{notebox}{関係データベースにおける集合演算の注意点}
+関係データベースで集合演算を行う際には，演算対象となる2つのレコード集合が\strong{和両立}（union compatible, 合併可能と呼ぶこともある）という条件を満たしている必要があります．
+これは，演算対象となる2つのレコード集合が以下のような条件を満たすことを意味します．
+\begin{itemize}
+\item 同じ列（属性）で構成されている，かつ
+\item 同じ列については，その定義域も同じである
+\end{itemize}
+この条件を満たしていない場合，レコード集合の集合演算を行うSQL文を実行してもエラーが出力されます．
+
+和両立とは難しく聞こえるかもしれませんが，Excelで例えると「2つの表を縦にコピペしてくっつけるときに，列の数や種類が違ったら内容がおかしくなるから，列の構成を揃えよう」というルールです．
+\end{notebox}
+
+
+\subsection{和集合演算（UNION）}
+\strong{和集合演算}は，2つのレコード集合のいずれかに含まれるレコードの集合（和集合または合併，union）を求める操作です．
+高校数学で例えると，
+\begin{quotation}
+$A=\{1, 2, 3, 4, 9\}$，$B=\{3, 4, 7\}$のとき，AとBの和集合$A \cup B$は$\{1, 2, 3, 4, 7, 9\}$
+\end{quotation}
+となるような演算の関係データベース版です．
+
+SQLで和集合を求めるには`UNION`演算子を用います．
+レコード集合Aとレコード集合Bの和集合を求めるには，\graybox{A UNION B}のようなSQL文を書きます．
+$A$や$B$はレコード集合であるので，実際にSQL文で\graybox{UNION}を使う際には，AやBの箇所に\strong{SELECT文が入ります}．
+
+コード\ref{code:sql-union}は，\graybox{関東人気商品}テーブルと\graybox{関西人気商品}テーブルの和集合を求めるSQL文である．
+このSQL文の実行結果は，表\ref{tab:union-result}のようになります．
+\begin{figure}[htb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false]{sql}
+
+    SELECT * FROM 関東人気商品
+    UNION
+    SELECT * FROM 関西人気商品;
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{「関東人気商品」テーブルと「関西人気商品」テーブルの和集合を求めるSQL文}
+    \label{code:sql-union}
+\end{figure}
+\begin{table}[htb]
+    \centering
+    \caption{「関東人気商品」テーブルと「関西人気商品」テーブル同士の和集合演算（SQL）の結果}
+    \scalebox{0.99}{
+    \begin{tabular}{lllll}
+    \toprule
+    \textbf{商品ID} & \textbf{商品名} & \textbf{カテゴリ} & \textbf{メーカー} & \textbf{価格} \\
+    \midrule
+P003 & 国産チキンカレー & レトルト & C食品 & 420 \\
+P005 & 味わい焼肉のたれ & 調味料 & E食品 & 890 \\
+P007 & 濃厚バゲット & パン & A製パン & 330 \\
+P013 & 有機醤油せんべい & 菓子 & K製菓 & 440 \\
+P019 & 贅沢焼肉のたれ & 調味料 & E食品 & 890 \\
+& & $\vdots$ & & \\
+P497 & 有機カレーパン & パン & A製パン & 520 \\
+    \bottomrule
+    \end{tabular}
+    }
+    \label{tab:union-result}
+\end{table}
+
+なお，（後述する積集合，差集合も同様であるが）和集合演算子\graybox{UNION}の演算対象となるSELECT文には，\graybox{WHERE}句などを含んでいても問題ありません．
+以下は，\graybox{関東人気商品}テーブルと\graybox{関西人気商品}テーブルのレコードのうち\graybox{価格}が1000円以上のレコードに限定して和集合を求めるSQL文です．
+このSQL文の実行結果は，表\ref{tab:union-result2}のようになります．
+\begin{figure}[htb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false]{sql}
+
+    SELECT * FROM 関東人気商品 WHERE 価格 >= 1000
+    UNION
+    SELECT * FROM 関西人気商品 WHERE 価格 >= 1000;
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{価格が1000円以上のレコードに限定して，「関東人気商品」テーブルと「関西人気商品」テーブル和集合を求めるSQL文}
+    \label{code:sql-uninon2}
+\end{figure}
+\begin{table}[htb]
+    \centering
+    \caption{価格が1000円以上のレコードに限定して，「関東人気商品」テーブルと「関西人気商品」テーブル同士の和集合を求めるSQL文の実行結果}
+    \scalebox{0.99}{
+    \begin{tabular}{lllll}
+    \toprule
+    \textbf{商品ID} & \textbf{商品名} & \textbf{カテゴリ} & \textbf{メーカー} & \textbf{価格} \\
+    \midrule
+P273 & 特製醤油 & 調味料 & Q醤油 & 1340 \\
+P351 & プレミアムシチュー & レトルト & Fファーム & 1040 \\
+    \bottomrule
+    \end{tabular}
+    }
+    \label{tab:union-result2}
+\end{table}
+
+
+\subsection{積集合演算（INTERSECT）}
+\strong{積集合演算}は，2つのレコード集合に共通して含まれるレコードの集合（積集合または共通集合，intersection）を求めるものです．
+高校数学で例えると，
+\begin{quotation}
+$A=\{1, 2, 3, 4, 9\}$，$B=\{3, 4, 7\}$のとき，AとBの積集合$A \cap B$は$\{3, 4\}$
+\end{quotation}
+となるような演算の関係データベース版です．
+
+SQLで積集合を求めるには\graybox{INTERSECT}演算子を用います．
+レコード集合Aとレコード集合Bの積集合を求めるには，\graybox{A INTERSECT B}のようなSQL文を書きます
+コード\ref{code:sql-intersect}は，\graybox{関東人気商品}テーブルと\graybox{関西人気商品}テーブルの積集合を求めるSQL文です．
+このSQL文の実行結果は，表\ref{tab:intersect-result}のようになります
+\begin{figure}[htb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{sql}
+
+    SELECT * FROM 関東人気商品
+    INTERSECT
+    SELECT * FROM 関西人気商品;
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{「関東人気商品」テーブルと「関西人気商品」テーブルの積集合を求めるSQL文}
+    \label{code:sql-intersect}
+\end{figure}
+\begin{table}[htb]
+    \centering
+    \caption{「関東人気商品」テーブルと「関西人気商品」テーブルの積集合を求めるSQL文の実行結果}
+    \scalebox{0.99}{
+    \begin{tabular}{lllll}
+    \toprule
+    \textbf{商品ID} & \textbf{商品名} & \textbf{カテゴリ} & \textbf{メーカー} & \textbf{価格} \\
+    \midrule
+P005 & 味わい焼肉のたれ & 調味料 & E食品 & 890 \\
+P013 & 有機醤油せんべい & 菓子 & K製菓 & 440 \\
+P044 & 辛口味噌 & 調味料 & E食品 & 510 \\
+P145 & 減塩焼肉のたれ & 調味料 & Fファーム & 710 \\
+P151 & 特製和風ドレッシング & 調味料 & Q醤油 & 750 \\
+P171 & 贅沢クロワッサン & パン & Oベーカリー & 420 \\
+P230 & 味わいケチャップ & 調味料 & Dフード & 900 \\
+P389 & 特製中華丼の素 & レトルト & Mフーズ & 440 \\
+P405 & 贅沢オリーブオイル & 調味料 & Q醤油 & 650 \\
+P412 & 特製塩クラッカー & 菓子 & N製菓 & 510 \\
+P419 & カロリーオフぽん酢 & 調味料 & Q醤油 & 800 \\
+    \bottomrule
+    \end{tabular}
+    }
+    \label{tab:intersect-result}
+\end{table}
+
+
+\subsection{差集合演算（EXCEPT）}
+\strong{差集合演算}は，あるレコード集合から別のレコード集合に含まれるレコードを除いたレコードの集合（差集合あるいは補集合，set difference）を求めるものです．
+高校数学の範囲で例えると，
+\begin{quotation}
+$A=\{1, 2, 3, 4, 9\}$，$B=\{3, 4, 7\}$のとき，AとBの差集合$A \setminus B$は$\{1, 2, 9\}$
+\end{quotation}
+となるような演算の関係データベース版です．
+集合$A$から$B$を引く差集合演算は，$A$にあって$B$にない要素の集合を求めたいときに用います．
+
+SQLで積集合を求めるには\graybox{EXCEPT}演算子を用います．
+レコード集合Aとレコード集合Bの差集合を求めるには，\graybox{A EXCEPT B}のようなSQL文を書きます
+コード\ref{code:sql-except}は，\graybox{関東人気商品}テーブルから\graybox{関西人気商品}テーブルを引いた差集合を求めるSQL文です．
+このSQL文の実行結果は，表\ref{tab:except-result}のようになります．
+\begin{figure}[htb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{sql}
+
+    SELECT * FROM 関東人気商品
+    EXCEPT
+    SELECT * FROM 関西人気商品;
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{「関東人気商品」テーブルから「関西人気商品」テーブルを引いた差集合を求めるSQL文}
+    \label{code:sql-except}
+\end{figure}
+\begin{table}[htb]
+    \centering
+    \caption{「関東人気商品」テーブルから「関西人気商品」テーブルを引いた差集合を求めるSQL文の実行結果}
+    \scalebox{0.99}{
+    \begin{tabular}{lllll}
+    \toprule
+    \textbf{商品ID} & \textbf{商品名} & \textbf{カテゴリ} & \textbf{メーカー} & \textbf{価格} \\
+    \midrule
+P007 & 濃厚バゲット & パン & A製パン & 330 \\
+P022 & たっぷり親子丼の素 & レトルト & Dフード & 650 \\
+P034 & たっぷり麻婆豆腐の素 & レトルト & Mフーズ & 400 \\
+P048 & 無添加醤油 & 調味料 & L食品 & 620 \\
+P055 & 有機和風ドレッシング & 調味料 & Dフード & 910 \\
+& & $\vdots$ & & \\
+P497 & 有機カレーパン & パン & A製パン & 520 \\
+    \bottomrule
+    \end{tabular}
+    }
+    \label{tab:except-result}
+\end{table}
+
+和集合演算や積集合演算とは異なり，差集合演算は演算の項の順序を入れ替えても結果は変わらない「交換法則」は\strong{成立しません}．
+つまり，$A \setminus B$と$B \setminus A$はイコールになるとは限りません．
+
+例えば，コード\ref{code:sql-except2}はコード\ref{code:sql-except}のSQL文とは演算の順序を入れ替え，\graybox{関西人気商品}テーブルから\graybox{関東人気商品}テーブルを引いた差集合を求めるSQL文です．
+このSQL文の実行結果は，表\ref{tab:except-result2}のようになります．
+表\ref{tab:except-result}の結果と異なることが分かります．
+\begin{figure}[htb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{sql}
+
+    SELECT * FROM 関西人気商品
+    EXCEPT
+    SELECT * FROM 関東人気商品;
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{「関西人気商品」テーブルから「関東人気商品」テーブルを引いた差集合を求めるSQL文}
+    \label{code:sql-except2}
+\end{figure}
+\begin{table}[htb]
+    \centering
+    \caption{「関西人気商品」テーブルから「関東人気商品」テーブルを引いた差集合を求めるSQL文の実行結果}
+    \scalebox{0.99}{
+    \begin{tabular}{lllll}
+    \toprule
+    \textbf{商品ID} & \textbf{商品名} & \textbf{カテゴリ} & \textbf{メーカー} & \textbf{価格} \\
+    \midrule
+P003 & 国産チキンカレー & レトルト & C食品 & 420 \\
+P019 & 贅沢焼肉のたれ & 調味料 & E食品 & 890 \\
+P032 & 辛口醤油 & 調味料 & L食品 & 530 \\
+P041 & 天然チョココロネ & パン & Oベーカリー & 390 \\
+P090 & じっくり煮込んだごま油 & 調味料 & Dフード & 900 \\
+& & $\vdots$ & & \\
+P488 & 昔ながらのビーフカレー & レトルト & Fファーム & 780 \\
+    \bottomrule
+    \end{tabular}
+    }
+    \label{tab:except-result2}
+\end{table}
+
+\begin{warningbox}{集合演算の注意点}
+\ref{chap:sql-part1}章で説明したように，関係データモデルは集合論に基づいているため，要素（タプル）の重複は許されません．
+一方，SQLは問い合わせ結果の中でレコードの重複を許します．
+
+ところで，上で説明した\graybox{UNION}，\graybox{INTERSECT}，\graybox{EXCEPT}といった集合演算については，SQLの問い合わせ結果においてレコードの重複は削除されるという性質を持っています．
+これらの演算が純粋な「集合演算」だからです．
+重複を保持する通常の\graybox{SELECT}の挙動との違いに注意してください．
+なお，重複を許した集合演算を行いたい場合は，\graybox{ALL}オプションを使います．
+例えば，重複を許して和集合を求めたい場合は\graybox{UNION ALL}のようにします．
+\end{warningbox}
+
+\section{結合演算}\label{sec:join}
+\strong{結合（JOIN）} とは，2つのテーブル中のレコードを特定の条件で組み合わせて新たなレコード集合を得る操作です．
+前節で扱った\graybox{UNION}，\graybox{INTERSECT}，\graybox{EXCEPT}といった集合演算がテーブルを縦方向（行方向）に操作するのに対して，結合操作はテーブルを\strong{横方向（列方向）} に操作します．
+データの正しさを担保するために，データをあえて複数のテーブルに分けて管理する関係データベースにおいて，\strong{結合操作を使いこなすことが多様かつ膨大なデータの管理・検索・分析を行う上で鍵}となります．
+
+以下，直積，内部結合，外部結合の3つの結合操作について説明します．
+
+
+\subsection{直積（CROSS JOIN）}
+集合論において，集合AとBの\strong{直積（デカルト積とも呼ぶ）} とは，集合Aと集合Bのそれぞれの要素のすべての組み合わせ（の集合）を意味します．
+例えば，集合$A=\{1, 2, 3\}$，集合$B=\{a, b\}$のとき，集合Aと集合Bの直積である$A \times B$は
+\begin{equation}
+A \times B = \{(1, a), (1, b), (2, a), (2, b), (3, a), (3, b)\}
+\end{equation}
+となります．
+
+関係データベースにおいてもテーブル同士の直積が定義されています．
+関係データベースにおける\strong{直積（交差結合; cross joinと呼ぶこともある）} は，2つのテーブル$R_1$と$R_2$が与えられたとき，テーブル$R_1$のレコードと$R_2$のレコードのすべての組み合わせを求める操作となります．
+
+2つのテーブルAとBの直積を求めるSQL文は，コード\ref{code:sql-cross-join}のように書きます．
+\begin{figure}[h]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{sql}
+
+    SELECT * FROM A CROSS JOIN B;
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{直積を求めるSQL文}
+    \label{code:sql-cross-join}
+\end{figure}
+上記SQL文は，\strong{CROSS JOIN}をカンマ（,）を省略して，以下のように書くこともできます．
+\begin{figure}[h]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{sql}
+
+    SELECT * FROM A, B;  -- CROSS JOINをカンマで代替
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{\graybox{CROSS JOIN}の代わりにカンマを用いた直積を求めるSQL文}
+    \label{code:sql-cross-join2}
+\end{figure}
+
+具体例を使って直積の結果を確認してみましょう．
+例えば，表\ref{tab:subject}と\ref{tab:teacher}のような「科目」テーブルと「教員」テーブルの2つがあるとします．
+表が示すとおり，「科目」テーブルには3レコード，「教員」テーブルには4レコード格納されています．
+\begin{table}[htb]
+    \centering
+    \caption{科目テーブル}
+    \scalebox{0.99}{
+    \begin{tabular}{ll}
+    \toprule
+    \textbf{科目名} & \textbf{開講時期} \\
+    \midrule
+データベース & 2年前期 \\
+機械学習 & 3年前期 \\
+統計モデリング & 2年後期 \\
+    \bottomrule
+    \end{tabular}
+    }
+    \label{tab:subject}
+\end{table}
+\begin{table}[htb]
+    \centering
+    \caption{教員テーブル}
+    \scalebox{0.99}{
+    \begin{tabular}{ll}
+    \toprule
+    \textbf{氏名} & \textbf{職階} \\
+    \midrule
+山畑 & 教授 \\
+桜山 & 教授 \\
+川澄 & 准教授 \\
+田辺 & 講師 \\
+    \bottomrule
+    \end{tabular}
+    }
+    \label{tab:teacher}
+\end{table}
+
+これら2つのテーブルのデータを元に，科目を担当する教員について考えられうるすべての組み合わせを求めるには， コード\ref{code:sql-cross-join3}のようなSQL文を書けばよいです．
+2つのテーブルの直積を求めると，表\ref{tab:cross-join-result}のように，合計$3 \times 4=12$レコードの組み合わせが得られます．
+\begin{figure}[htb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{sql}
+
+    SELECT
+        *
+    FROM
+        科目, 教員;
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{「科目」テーブルと「教員」テーブルの直積を求めるSQL文}
+    \label{code:sql-cross-join3}
+\end{figure}
+\begin{table}[htb]
+    \centering
+    \caption{「科目」テーブルと「教員」テーブルの直積を求めるSQL文の実行結果}
+    \scalebox{0.99}{
+    \begin{tabular}{llll}
+    \toprule
+    \textbf{科目名} & \textbf{開講時期} & \textbf{氏名} & \textbf{職階} \\
+    \midrule
+データベース & 2年前期 & 山畑 & 教授 \\
+データベース & 2年前期 & 桜山 & 教授 \\
+データベース & 2年前期 & 川澄 & 准教授 \\
+データベース & 2年前期 & 田辺 & 講師 \\
+機械学習 & 3年前期 & 山畑 & 教授 \\
+機械学習 & 3年前期 & 桜山 & 教授 \\
+機械学習 & 3年前期 & 川澄 & 准教授 \\
+機械学習 & 3年前期 & 田辺 & 講師 \\
+統計モデリング & 2年後期 & 山畑 & 教授 \\
+統計モデリング & 2年後期 & 桜山 & 教授 \\
+統計モデリング & 2年後期 & 川澄 & 准教授 \\
+統計モデリング & 2年後期 & 田辺 & 講師 \\
+    \bottomrule
+    \end{tabular}
+    }
+    \label{tab:cross-join-result}
+\end{table}
+
+直積を求めるSQL文では，\graybox{WHERE}句を使って抽出結果を選択（絞り込む）ことができます．
+例えば，「注文」テーブルと「関西人気商品」テーブルの直積を求めた後，「商品ID」の値が一致しているレコードだけを抽出してみましょう．
+これを実現するSQL文はコード\ref{code:sql-cross-join4}のようになります．
+表\ref{tab:cross-join-result2}は，コード\ref{code:sql-cross-join4}のSQL文の実行結果です．
+\begin{figure}[tb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{sql}
+
+    SELECT
+        *
+    FROM
+        注文, 関西人気商品
+    WHERE
+        --- 「注文.商品ID」とすることで，「注文」テーブルの「商品ID」を参照することを明示
+        --- 「関西人気商品.商品ID」とすることで，「関西人気商品」テーブルの「商品ID」を参照することを明示
+        注文.商品ID = 関西人気商品.商品ID;
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{「注文」テーブルと「関西人気商品」テーブルの直積を求めた後，「商品ID」の値が一致しているレコードだけを抽出するSQL文}
+    \label{code:sql-cross-join4}
+\end{figure}
+\begin{table}[tb]
+    \centering
+    \caption{「注文」テーブルと「関西人気商品」テーブルの直積を求めた後，「商品ID」の値が一致しているレコードだけを抽出するSQL文の実行結果}
+    \scalebox{0.55}{
+    \begin{tabular}{llllrllllrr}
+    \toprule
+    \textbf{注文ID} & \textbf{ユーザID} & \textbf{商品ID} & \textbf{数量} & \textbf{注文日} & \textbf{商品ID} & \textbf{商品名} & \textbf{カテゴリ} & \textbf{メーカー} & \textbf{価格} & \textbf{在庫数} \\
+    \midrule
+O0006 & U083 & P432 & 1 & 2025-07-16 & P432 & 糖質オフビーフカレー & レトルト & Mフーズ & 600 \\
+O0011 & U013 & P430 & 4 & 2024-08-28 & P430 & 朝のビーフカレー & レトルト & L食品 & 640 \\
+O0015 & U037 & P454 & 5 & 2024-05-15 & P454 & 職人仕込み味噌 & 調味料 & Dフード & 720 \\
+O0020 & U008 & P266 & 4 & 2026-02-19 & P266 & 減塩食パン & パン & Oベーカリー & 410 \\
+O0025 & U061 & P421 & 4 & 2022-04-21 & P421 & 特製くるみパン & パン & A製パン & 290 \\
+& & $\vdots$ & & & & $\vdots$ & & & \\
+O1991 & U036 & P320 & 1 & 2024-11-16 & P320 & 職人仕込みフルーツグミ & 菓子 & K製菓 & 400 \\
+    \bottomrule
+    \end{tabular}
+    }
+    \label{tab:cross-join-result2}
+\end{table}
+
+\begin{notebox}{複数のテーブルを参照するときの注意点}
+複数のテーブルに同一の列名が存在する際，SQL文内で列名だけを指定すると，どのテーブルの列を参照しているのかが明確でないためエラーが発生します．
+これを防ぐために，複数のテーブルを参照するときには，列名の前に\graybox{テーブル名.}をつけて列を参照するテーブル名を明確化します．
+\end{notebox}
+
+
+\subsection{内部結合（INNER JOIN）}
+\strong{内部結合（inner join）} は，2つのテーブルにおいて指定した列の値が条件を満たすレコードのみを結合して抽出する操作です．
+通常，関係データベースの世界で「結合」あるいは「ジョイン」という言葉は「内部結合」を指します．
+テーブルAにテーブルBを内部結合するためのSQL文は
+\begin{enumerate}
+\item \graybox{FROM A}の後で\graybox{INNER JOIN B}（あるいは省略して\graybox{JOIN B}）と書き，
+\item \graybox{INNER JOIN B}の後に2つのテーブルの結合条件を\graybox{ON}句で指定する
+\end{enumerate}
+という流れになります．
+
+例えば，前節「直積」で扱った「注文」テーブルと「関西人気商品」テーブルについて，属性「商品ID」で内部結合してみましょう．
+コード\ref{code:inner-join}は，「注文」テーブルと「関西人気商品」テーブルを内部結合するSQL文です．
+このSQL文の実行結果は，表\ref{tab:inner-join-result}のようになります．
+\begin{figure}[htb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{sql}
+
+    SELECT
+        --- 「テーブル名.*」 で「そのテーブルにあるすべての列」を意味する
+        注文.*,
+        --- 「テーブル名.*」でなく，「テーブル名.列名」と書くと，
+        --- 該当テーブルの特定の列の情報だけを参照可能
+        関西人気商品.商品名,
+        関西人気商品.メーカー,
+        関西人気商品.価格
+    FROM
+        注文
+    INNER JOIN
+        関西人気商品
+    ON
+        注文.商品ID = 関西人気商品.商品ID;
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{「注文」テーブルと「関西人気商品」テーブルを内部結合するSQL文}
+    \label{code:inner-join}
+\end{figure}
+\begin{table}[htb]
+    \centering
+    \caption{「注文」テーブルと「関西人気商品」テーブルを内部結合するSQL文の実行結果}
+    \scalebox{0.72}{
+    \begin{tabular}{lllrllll}
+    \toprule
+    \textbf{注文ID} & \textbf{ユーザID} & \textbf{商品ID} & \textbf{数量} & \textbf{注文日} & \textbf{商品名} & \textbf{メーカー} & \textbf{価格} \\
+    \midrule
+O0006 & U083 & P432 & 1 & 2025-07-16 & 糖質オフビーフカレー & Mフーズ & 600 \\
+O0011 & U013 & P430 & 4 & 2024-08-28 & 朝のビーフカレー & L食品 & 640 \\
+O0015 & U037 & P454 & 5 & 2024-05-15 & 職人仕込み味噌 & Dフード & 720 \\
+O0020 & U008 & P266 & 4 & 2026-02-19 & 減塩食パン & Oベーカリー & 410 \\
+O0025 & U061 & P421 & 4 & 2022-04-21 & 特製くるみパン & A製パン & 290 \\
+& & $\vdots$ & & & $\vdots$ & & \\
+O1991 & U036 & P320 & 1 & 2024-11-16 & 職人仕込みフルーツグミ & K製菓 & 400 \\
+    \bottomrule
+    \end{tabular}
+    }
+    \label{tab:inner-join-result}
+\end{table}
+
+直積を求めるSQL文と似たような結果が出力されましたが，内部的な処理手順は異なります．
+直積のSQL文はいったん直積ですべての組み合わせを求めた後，「商品名」が一致するものを調べて結果を表示します．
+これに対し，内部結合を用いた上記SQL文では，\graybox{INNER JOIN}句で指定した条件を満たす組み合わせのみを抽出し，その後それをすべて選択（表示）するという順で処理を行っています．
+
+\subsubsection{USING句を使った省略記法}
+2つのテーブルを内部結合する際，結合するテーブルの列名が等しい（同じ列名で結合する）かつ結合条件が等号である場合は，以下のように\graybox{ON}句を使わず\graybox{USING}句を使って簡単に書くことができます．
+コード\ref{code:sql-inner-join-using}は上記SQL文を\graybox{USING}句を使って書き換えたものです．
+\begin{figure}[tb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{sql}
+
+    SELECT
+        注文.*,
+        関西人気商品.商品名,
+        関西人気商品.メーカー,
+        関西人気商品.価格
+    FROM
+        注文
+    INNER JOIN
+        関西人気商品
+    USING(商品ID);
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{USING句を使って「注文」テーブルと「ユーザ」テーブルを内部結合するSQL文}
+    \label{code:sql-inner-join-using}
+\end{figure}
+
+
+（後述する外部結合も含めて）\graybox{JOIN}句と\graybox{WHERE}句を組み合わせる際には，\graybox{JOIN}が行われる順序を意識することが重要となります．
+例えば，先の内部結合の例（\ref{code:inner-join}）において「数量が1の注文に限定」したいとしましょう．
+このような場合，コード\ref{code:sql-inner-join-where}のように\graybox{JOIN}句の後に\graybox{WHERE}句で選択条件を指定します．
+こうすることで，\graybox{JOIN}句で特定の条件でテーブルを結合した後，\graybox{WHERE}句で結合結果を絞り込むことができます（表\ref{tab:inner-join-where-result}参照）．
+\begin{figure}[htb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{sql}
+
+    SELECT
+        注文.*,
+        関西人気商品.商品名,
+        関西人気商品.メーカー,
+        関西人気商品.価格
+    FROM
+        注文
+    INNER JOIN
+        関西人気商品
+    USING(商品ID)
+    WHERE
+        注文.数量 = 1;
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{「数量」の値を絞り込んで「注文」テーブルと「関西人気商品」テーブルを内部結合するSQL文}
+    \label{code:sql-inner-join-where}
+\end{figure}
+\begin{table}[htb]
+    \centering
+    \caption{「数量」の値を絞り込んで「注文」テーブルと「関西人気商品」テーブルを内部結合するSQL文の実行結果}
+    \scalebox{0.72}{
+    \begin{tabular}{lllrllll}
+    \toprule
+    \textbf{注文ID} & \textbf{ユーザID} & \textbf{商品ID} & \textbf{数量} & \textbf{注文日} & \textbf{商品名} & \textbf{メーカー} & \textbf{価格} \\
+    \midrule
+O0006 & U083 & P432 & 1 & 2025-07-16 & 糖質オフビーフカレー & Mフーズ & 600 \\
+O0226 & U080 & P224 & 1 & 2024-05-01 & 朝の醤油 & Q醤油 & 780 \\
+O0239 & U020 & P385 & 1 & 2020-02-07 & 濃厚ごまドレッシング & E食品 & 670 \\
+O0456 & U027 & P032 & 1 & 2024-03-06 & 辛口醤油 & L食品 & 530 \\
+O0706 & U019 & P328 & 1 & 2021-11-08 & じっくり煮込んだぽん酢 & Fファーム & 800 \\
+& & $\vdots$ & & & $\vdots$ & & \\
+O1991 & U036 & P320 & 1 & 2024-11-16 & 職人仕込みフルーツグミ & K製菓 & 400 \\
+    \bottomrule
+    \end{tabular}
+    }
+    \label{tab:inner-join-where-result}
+\end{table}
+
+
+\subsection{外部結合（OUTER JOIN）}
+内部結合は，片方のテーブル$R_1$にあるレコード$r$に対して，もう片方のテーブル$R_2$のレコードに結合条件を満たす列データがあるときに限ってレコード同士を結合し，その結果を表示するものです．
+このことは，結合条件を満たすレコードがもう片方のテーブル$R_2$にない場合は$r$は\strong{無視される}ことを意味します．
+
+本章で例題として用いている\graybox{注文}テーブルには，\graybox{商品}テーブルにある商品に関する注文が記録されています．
+一方，\graybox{関西人気商品}テーブルには，\graybox{商品}テーブルから抽出された関西地域の人気商品に関する情報が記録されています．
+そのため，\graybox{注文}テーブルと\graybox{関西人気商品}テーブルを内部結合すると，「関西人気商品以外の商品」に関するレコードが結合結果に残りません．
+
+このような内部結合に対して，結合条件を満たさないレコードがあった時でもそのことを示す情報を付与したレコードを残しつつ，テーブル同士を結合する演算が\strong{外部結合（outer join）} です．
+外部結合では，結合条件を満たさないレコードがあった場合，値が存在しない列に\strong{NULL値（ヌル値）} と呼ばれる「値がないこと」を示す情報を入れて結果が出力されます．
+
+テーブルAにテーブルBを外部結合するためのSQL文は
+\begin{enumerate}
+\item \graybox{FROM A}の後で\graybox{LEFT OUTER JOIN B}と書き，
+\item \graybox{LEFT OUTER JOIN B}の後に2つのテーブルの結合条件を\graybox{ON}句で指定する
+\end{enumerate}
+というフォーマットになります．
+
+例を見てみましょう．
+コード\ref{code:sql-outer-join}は，内部結合の説明で用いたコード\ref{code:sql-inner-join-using}のSQL文を外部結合に書き換えたものです．
+このSQL文の実行結果は，表\ref{tab:outer-join-result}のようになります．
+\begin{figure}[htb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{sql}
+
+    SELECT
+        注文.*,
+        関西人気商品.商品名,
+        関西人気商品.メーカー,
+        関西人気商品.価格
+    FROM
+        注文
+    LEFT OUTER JOIN --- （左）外部結合に書き換え
+        関西人気商品
+    USING(商品ID);
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{「注文」テーブルと「関西人気商品」テーブルを（左）外部結合するSQL文}
+    \label{code:sql-outer-join}
+\end{figure}
+\begin{table}[htb]
+    \centering
+    \caption{「注文」テーブルと「関西人気商品」テーブルを（左）外部結合するSQL文の実行結果}
+    \scalebox{0.75}{
+    \begin{tabular}{lllrllll}
+    \toprule
+    \textbf{注文ID} & \textbf{ユーザID} & \textbf{商品ID} & \textbf{数量} & \textbf{注文日} & \textbf{商品名} & \textbf{メーカー} & \textbf{価格} \\
+    \midrule
+O0001 & U006 & P182 & 1 & 2024-02-10 & \graybox{NULL} & \graybox{NULL} & \graybox{NULL} \\
+O0002 & U016 & P276 & 2 & 2022-10-20 & \graybox{NULL} & \graybox{NULL} & \graybox{NULL} \\
+O0003 & U057 & P178 & 5 & 2025-01-03 & \graybox{NULL} & \graybox{NULL} & \graybox{NULL} \\
+O0004 & U021 & P361 & 10 & 2023-10-29 & \graybox{NULL} & \graybox{NULL} & \graybox{NULL} \\
+O0005 & U069 & P311 & 7 & 2024-12-26 & \graybox{NULL} & \graybox{NULL} & \graybox{NULL} \\
+O0006 & U083 & P432 & 1 & 2025-07-16 & 糖質オフビーフカレー & Mフーズ & 600 \\
+& & $\vdots$ & & & $\vdots$ & & \\
+    \bottomrule
+    \end{tabular}
+    }
+    \label{tab:outer-join-result}
+\end{table}
+内部結合の例とは異なり，「関西人気商品以外の商品」に関するレコードが表示され，それら商品の属性「商品名」「メーカー」「価格」の値が\graybox{NULL}になっていることが分かります．
+
+内部結合は両方のテーブルにデータがあるものだけを残すため，例えば「まだ一度も注文をしたことがないユーザ」のレコードはSQL実行結果に現れません．
+そのため，「なぜこのユーザは注文しなかったのか」といった理由を分析するために，注文履歴がないユーザのレコードも見たい場合がよくあります．
+このように「メインのデータ（レコード）も絶対に出力結果に残しておきたい」というときに大活躍するのが外部結合です．
+外部結合は，結合条件を満たすレコードがなかったとしてもそれを把握したい時などに活用できます．
+
+
+内部結合（INNER JOIN）は両方のテーブルにデータがあるものだけを残すため，例えば『まだ一度も注文をしたことがないユーザー』のデータが消えてしまいます．しかしデータサイエンスの世界では，『なぜこのユーザーは注文しなかったのか？』を分析するために，注文履歴がないユーザーのデータも残しておきたいことがよくあります．このように**『メインのデータ（左側のテーブル）は絶対に消さずに残しておきたい！』**というときに大活躍するのが，左外部結合（LEFT OUTER JOIN）なのです．
+
+なお，上記の例題からも分かるように，外部結合には\strong{左外部結合（left outer join）} と\strong{右外部結合（right outer join）}，および\strong{完全外部結合（full outer join）} の3種類が存在します\footnote{SQLiteでは，バージョンによっては右外部結合および完全外部結合はサポートされていないので注意しましょう．}．
+左外部結合が結合対象の左テーブルのレコードを全て残すのに対して，
+\begin{itemize}
+\item 右外部結合は（結合条件を満たさなかった場合でも）結合対象の右テーブルのレコードを全て残し，
+\item 完全外部結合は（結合条件を満たさなかった場合でも）左右両方のテーブルのレコードを全て残す
+\end{itemize}
+演算となります．
+まずは左外部結合をマスターしましょう．
+
+\begin{notebox}{NULLと空文字は異なる}
+\graybox{NULL}は値が存在しないことを意味する情報です．
+文字列が入ることが想定される列に\graybox{NULL}値が入っている場合は「その列には何らかの理由で値が設定されなかった」ことを意味します．
+一方，空文字（\graybox{''}）は長さが0の文字列です．
+もし文字列が入ることが想定される列に空文字が入っている場合は「意図を持って文字がないことを示すために空文字が入れられた」ことを意味します．
+SQLでは\graybox{NULL}と空文字と厳格に区別しているため，扱いには注意しましょう．
+\end{notebox}
+
+
+\section{副問い合わせ}
+関係データベースへの問い合わせが複雑になってくると，SQLによる問い合わせ結果を使ってさらにSQL文を書きたいケースも出てきます．
+このようなケースで役に立つのが\strong{副問い合わせ（サブクエリ; subqueryと呼ぶことも）} です．
+副問い合わせを用いると，\graybox{FROM}句や\graybox{WHERE}句の中で\graybox{SELECT}文を書くことができ，SQL文の中で別のSQL文の実行結果を参照することができます．
+
+例題を通して，副問い合わせの使い方を見てみましょう．
+\graybox{注文}テーブルと\graybox{商品}テーブルを用いて，以下を実現するSQL文を書いてみましょう．
+\begin{enumerate}
+\item 2つのテーブルを結合して，商品ごとに売り上げの合計を求め，
+\item 売り上げの上位10の商品名を表示する
+\end{enumerate}
+
+上記ステップ1だけを行うSQL文であれば，コード\ref{code:sql-sales-by-product}のようになります．
+このSQL文の実行結果は，表\ref{tab:sales-by-product-result}の通りです．
+\begin{figure}[htb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{sql}
+
+    /* ステップ1だけを行うSQL文 */
+    SELECT
+        注文.商品ID,
+        商品.商品名,
+    	SUM(商品.価格 * 注文.数量) AS 売り上げ額 --- 列名に名前をつける
+    FROM
+        注文
+    JOIN 商品 USING(商品ID)
+    GROUP BY
+        商品ID, 商品名; --- GROUP BYでグループ化する列を指定
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{商品ごとに売り上げを求めるSQL文}
+    \label{code:sql-sales-by-product}
+\end{figure}
+\begin{table}[htb]
+    \centering
+    \caption{商品ごとに売り上げを求めるSQL文の実行結果}
+    \scalebox{0.99}{
+    \begin{tabular}{llr}
+    \toprule
+    \textbf{商品ID} & \textbf{商品名} & \textbf{売り上げ額} \\
+    \midrule
+P001 & 国産カレーパン & 10530 \\
+P002 & 職人仕込みクロワッサン & 3220 \\
+P003 & 国産チキンカレー & 10500 \\
+P004 & 天然中華丼の素 & 2160 \\
+P005 & 味わい焼肉のたれ & 23140 \\
+ & \vdots &  \\
+    \bottomrule
+    \end{tabular}
+    }
+    \label{tab:sales-by-product-result}
+\end{table}
+
+
+次にやりたいことは表\ref{tab:sales-by-product-result}のテーブルを売上額の大きい順に並べ替えて，上位10件の商品情報を出力することです．
+もし上記\ref{tab:sales-by-product-result}のテーブルが\graybox{売上}という名で存在していれば，コード\ref{code:sales-top10-sql}のようなSQL文を書くことで目的を達成できます．
+\begin{figure}[htb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{sql}
+
+    -- これは仮のSQL文．実際には「売上」テーブルは存在しない
+    SELECT * FROM 売上 ORDER BY 売り上げ額 DESC LIMIT 10;
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{「売上」テーブルが存在する場合の上位10件の商品情報を出力するSQL文}
+    \label{code:sales-top10-sql}
+\end{figure}
+
+上記のステップ1と2は，ステップ1のSQL文を「副問い合わせ」することで実現できます．
+具体的には，コード\ref{code:sales-top10-sql}のSQL文の\graybox{FROM}句にある\graybox{売上}の箇所を，ステップ1に関するSQL文（コード\ref{code:sql-sales-by-product}）をカッコで囲んだもので置き換えます．
+長いSQL文を見ると難しく感じるかもしれませんが，焦る必要はありません．
+副問い合わせのコツは，「まずは必要なデータがまとまった小さな仮想テーブル（今回は「売上」テーブル）を作り，それに対して改めてSELECTを行う」という2段階のステップで考えることです．
+カッコ\graybox{( )}の中身が新しいテーブルに置き換わるイメージを持ってみてください．
+\begin{figure}[htb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{sql}
+
+    SELECT
+        *
+    FROM
+    --- 以下のカッコで囲まれたSQL文が副問い合わせ
+    (
+        SELECT
+            注文.商品ID,
+            商品.商品名,
+            SUM(商品.価格 * 注文.数量) AS 売り上げ額
+        FROM
+            注文
+        JOIN 商品 USING(商品ID)
+        GROUP BY
+            商品ID, 商品名
+    ) AS 売上 --- 副問い合わせの結果に「売上」という名前をつける
+    ORDER BY
+        売り上げ額 DESC
+    LIMIT 10;
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{副問い合わせを用いて，売り上げ上位10件の商品情報を出力するSQL文}
+    \label{code:subquery-sales-top10}
+\end{figure}
+
+このSQL文の実行結果は，表\ref{tab:sales-top10-result}のようになります．
+\begin{table}[htb]
+    \centering
+    \caption{副問い合わせを用いて，売り上げ上位10件の商品情報を出力するSQL文の実行結果}
+    \scalebox{0.99}{
+    \begin{tabular}{llr}
+    \toprule
+    \textbf{商品ID} & \textbf{商品名} & \textbf{売り上げ額} \\
+    \midrule
+P273 & 特製醤油 & 65660 \\
+P094 & 朝の和風ドレッシング & 36630 \\
+P151 & 特製和風ドレッシング & 33750 \\
+P488 & 昔ながらのビーフカレー & 30420 \\
+P419 & カロリーオフぽん酢 & 30400 \\
+P405 & 贅沢オリーブオイル & 29250 \\
+P116 & 国産シチュー & 29070 \\
+P444 & カロリーオフめんつゆ & 28140 \\
+P040 & 職人仕込み塩クラッカー & 27000 \\
+P177 & 贅沢バゲット & 26550 \\
+    \bottomrule
+    \end{tabular}
+    }
+    \label{tab:sales-top10-result}
+\end{table}
+
+以上のように，副問い合わせを用いることで，SQL文の中で別のSQL文の実行結果を参照することができます．
+ただし，副問い合わせはどうしてもSQL文が複雑で読みにくくなります．
+そのため，副問い合わせ箇所に\graybox{AS}修飾句で名前をつけたり，\graybox{WITH}句を使って副問い合わせ箇所を外出しするなど，少しでもSQL文を分かりやすくする工夫が重要です．
+
+コード\ref{code:subquery-sales-top10-with-with}のSQL文は，先のSQL文を\graybox{AS}修飾句や\graybox{WITH}句を使ってわかりやすく書き換えたものです．
+コード\ref{code:subquery-sales-top10}のSQL文よりも多少は読みやすくはなったのではないでしょうか．
+データ分析の現場では，いきなり複雑なSQLを書くのではなく，データの抽出，加工，分析の流れでデータ処理を行います．
+\graybox{WITH}句を用いることで，コード\ref{code:subquery-sales-top10-with-with}のように，データ処理の流れをステップごとに定義していくことも可能となります．
+\begin{figure}[htb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{sql}
+
+    --- 副問い合わせしたいSQL文の実行結果を抽出し，加工（集約計算）しておく
+    --- 結果には「売上」という名前を付ける
+    WITH 売上 AS (
+        SELECT
+            注文.商品ID,
+            商品.商品名,
+            SUM(商品.価格 * 注文.数量) AS 売り上げ額
+        FROM
+            注文
+        JOIN 商品 USING(商品ID)
+        GROUP BY
+            商品ID
+    )
+    SELECT
+        *
+    FROM
+        売上
+    ORDER BY
+        売上.売り上げ額 DESC
+    LIMIT 10;
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{\graybox{WITH}句を用いて副問い合わせを分かりやすく書き換えたSQL文}
+    \label{code:subquery-sales-top10-with-with}
+\end{figure}
+
+先の例では\graybox{FROM}句内で副問い合わせ指定を行っていましたが，\graybox{WHERE}句においても副問い合わせを行うことができます．
+例えば，内部結合の例で用いた「関西人気商品」テーブルと「商品」テーブル，「注文」テーブルを用いて，
+\begin{quotation}
+「注文」テーブルにおいて，「商品ID」が「関西人気商品」テーブルの「商品ID」に\strong{入っていない}レコードで，売り上げ数量が5以上のレコードを抽出する
+\end{quotation}
+ようなSQL文を考えてみよう．
+ちなみに，
+\begin{quotation}
+「注文」テーブルにおいて，「商品ID」が「関西人気商品」テーブルの「商品ID」に\strong{入っている}レコードで，注文数が5以上のレコードを抽出する
+\end{quotation}
+ようなSQL文は簡単です．
+コード\ref{code:subquery-where-in}のように，単純に「関西人気商品」テーブルと「注文」テーブルを結合すればよいからです．
+\begin{figure}[htb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{sql}
+
+    SELECT
+        注文.*,
+        関西人気商品.商品名,
+        関西人気商品.メーカー,
+        関西人気商品.価格
+    FROM
+        注文
+    INNER JOIN
+        関西人気商品
+    USING(商品ID)
+    WHERE
+        注文.数量 >= 5;
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{「注文」テーブルにおいて，「商品ID」が「関西人気商品」テーブルの「商品ID」に入っているレコードで，注文数が5以上のレコードを抽出するSQL文}
+    \label{code:subquery-where-in}
+\end{figure}
+
+一方，関西人気商品リストに「入っていない」商品の注文の場合，以下のような処理の流れになります．
+\begin{enumerate}
+\item \graybox{商品}テーブル内の各商品について，\graybox{関西人気商品}テーブル内にあるかを判定し，
+\item ない場合にのみ，「注文」テーブルを参照してレコードを結合する
+\item 最後に，注文数が5以上のレコードを抽出する
+\end{enumerate}
+上記ステップ1では「別のテーブルを活用した対象レコードの存在判定」を行っています．
+この存在判定処理は，\graybox{EXISTS}述語を使った副問い合わせで対応することができます．
+上の例のステップ1-3は，コード\ref{code:subquery-where-not-exists}のようなSQL文で実現できます．
+このSQL文の実行結果は，表\ref{tab:subquery-where-not-exists-result}のようになります．
+\begin{figure}[htb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{sql}
+
+    SELECT
+        注文.*,
+        商品.商品名,
+        商品.メーカー,
+        商品.価格
+    FROM
+        注文
+    INNER JOIN
+        商品
+    USING(商品ID)
+    WHERE
+        --- NOT EXISTSは存在しない場合Trueを，存在する場合はFalseを返す
+        NOT EXISTS (
+            SELECT
+                *
+            FROM
+                関西人気商品
+            WHERE
+                関西人気商品.商品ID = 注文.商品ID
+        )
+        AND 注文.数量 >= 5;
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{「注文」テーブルにおいて，「商品ID」が「関西人気商品」テーブルの「商品ID」に入っていないレコードで，注文数が5以上のレコードを抽出するSQL文}
+    \label{code:subquery-where-not-exists}
+\end{figure}
+\begin{table}[htb]
+    \centering
+    \caption{「注文」テーブルにおいて，「商品ID」が「関西人気商品」テーブルの「商品ID」に入っていないレコードで，注文数が5以上のレコードを抽出するSQL文の実行結果}
+    \scalebox{0.72}{
+    \begin{tabular}{lllrllll}
+    \toprule
+    \textbf{注文ID} & \textbf{ユーザID} & \textbf{商品ID} & \textbf{数量} & \textbf{注文日} & \textbf{商品名} & \textbf{メーカー} & \textbf{価格} \\
+    \midrule
+O0003 & U057 & P178 & 5 & 2025-01-03 & カロリーオフ塩クラッカー & N製菓 & 300 \\
+O0004 & U021 & P361 & 10 & 2023-10-29 & ふんわり麦茶 & Bフーズ & 220 \\
+O0005 & U069 & P311 & 7 & 2024-12-26 & 濃厚フルーツグミ & K製菓 & 110 \\
+O0007 & U068 & P417 & 6 & 2024-06-05 & さくさくチキンカレー & C食品 & 570 \\
+O0008 & U074 & P075 & 7 & 2019-06-16 & 辛口アップルジュース & Gウォーター & 120 \\
+& & $\vdots$ & & & $\vdots$ & & \\
+    \bottomrule
+    \end{tabular}
+    }
+    \label{tab:subquery-where-not-exists-result}
+\end{table}
+
+\graybox{WHERE}句内で\graybox{EXISTS}が用いられた場合，（メインのSQL文の）\graybox{FROM}句で指定されたテーブルの各レコードについて，
+\begin{itemize}
+\item \graybox{EXISTS}以下の副問い合わせ内容を満たすものが\strong{1つでも}存在すれば\graybox{True}（真），
+\item 存在しなければ\graybox{False}（偽）
+\end{itemize}
+の値を返します．
+\graybox{NOT EXISTS}を用いた場合は逆の振る舞いになります．
+つまり，
+\begin{itemize}
+\item \graybox{NOT EXISTS}以下の副問い合わせ内容を満たすものが\strong{1つでも}存在すれば\graybox{False}（偽），
+\item 1つも存在しなければ\graybox{True}（真）
+\end{itemize}
+の値を返します．
+\graybox{EXISTS}の振る舞いは少しややこしいですが，副問い合わせを用いたSQL文では比較的よく用いられるので頭に入れておきましょう．
+
+
+\section{IN述語}
+\graybox{EXISTS}述語と似たようなものとして\graybox{IN}述語があります．
+\graybox{IN}述語は，\graybox{WHERE}句内で\graybox{列名 IN リスト}と書くと，あるレコードの列の値が\graybox{リスト}内にあるかどうかを真偽値（True/False）で返します．
+なお，\graybox{リスト}と書かれたところは\graybox{(値, 値, 値)}のようにリストの要素をカッコ内に並べてベタ書きで指定してもよいですし，副問い合わせで指定してもよいです．
+
+例えば，\graybox{NOT EXISTS}述語を用いたコード\ref{code:subquery-where-not-exists}のSQL文は，\graybox{IN}述語を使って以下のように書き換えることができます．
+\begin{figure}[htb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{sql}
+
+    SELECT
+        注文.*,
+        商品.商品名,
+        商品.メーカー,
+        商品.価格
+    FROM
+        注文
+    INNER JOIN
+        商品
+    USING(商品ID)
+    WHERE
+        --- NOT INはINの逆の意味になる
+        注文.商品ID NOT IN (
+            SELECT
+                関西人気商品.商品ID
+            FROM
+                関西人気商品
+        )
+        AND 注文.数量 >= 5;
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{コード\ref{code:subquery-where-not-exists}のSQL文を\graybox{IN}述語を用いて書き換えたもの}
+    \label{code:subquery-where-not-in}
+\end{figure}
+
+\graybox{IN}述語の方が\graybox{EXISTS}述語よりも挙動が分かりやすいです．
+論理的な意味合いとして，\graybox{IN}述語は副問い合わせが返す「すべての結果のリスト」の中に値が含まれるかを判定するのに対し，\graybox{EXISTS}述語は条件に合致するレコードが「1つでも存在するか」を確認した時点で判定を下すことができます．
+そのため，手続き的なイメージとしては，1つ見つけた時点で探索を打ち切ることができる\graybox{EXISTS}の方が無駄な処理が少なく，高速に動作する傾向があります．
+
+ただし，実際のRDBMSでは，入力されたSQL文の通りに処理が行われるわけではありません．
+DBMS内部のクエリコンパイラがSQL文を解析し，最も効率的な処理手順（クエリプラン）に変換して実行します．
+近年の優秀なRDBMSでは，\graybox{IN}述語を使って書いても内部的に\graybox{EXISTS}と同等の効率的な処理に書き換えて最適化してくれることも多いため，必ずしも実行速度に差が出るとは限りません．
+それでも，両者の「論理的な振る舞いの違い」を理解しておくことは，意図したクエリを正確に書く上で非常に重要です．
+
+
+\begin{tipbox}{SQLの標準化と方言について}
+\ref{chap:sql-part1}章と本章で学んだSQLは，ISOなどによって国際的に標準化されています．
+しかし，実際のRDBMS（SQLite，MySQL，PostgreSQLなど）においては，標準規格に完全に準拠しているわけではなく，独自の拡張や関数（いわゆる「方言」）が存在します．
+SQLの標準規格（SQL99など）やその変遷についてより深く理解したい場合は，DateとDarwenによる解説書\cite{Date1997}やMeltonとSimonの著書\cite{Melton1993}などの標準的なリファレンスが非常に参考になるでしょう．
+\end{tipbox}
+
+
+\section{問い合わせのための発展的なSQL}
+これまでに述べてきたSQLは，関係データベースから所望のレコードを引っ張ってくるための基礎にすぎません．
+解説していないSQLは他にも色々あります．
+例えば，
+\begin{itemize}
+\item 条件分岐をするための\graybox{CASE}句
+\item 数値，文字列処理のための様々な関数
+\item より高度な集約演算を行うためのWindow関数（分析関数）
+\end{itemize}
+などがあります．
+以下のような実践的かつ面白い書籍があるので，興味のある方は読んでみるとよいでしょう．
+\begin{itemize}
+\item 本橋智光．「前処理大全-データ分析のためのSQL/R/Python実践テクニック」, 技術評論社（2018）\cite{前処理大全}
+\item 加嵜長門，田宮直人．「ビッグデータ分析・活用のためのSQLレシピ」，マイナビ出版（2017）\cite{SQLレシピ}
+\end{itemize}
+
+
+% ---------------------------------------
+\section{クイズ}
+% ---------------------------------------
+
+本クイズでは，\ref{chap:sql-part1}章のクイズと同様，独立行政法人統計センターが公開している教育用標準データセット（SSDSE）の基本素材SSDSE-E\footnote{教育用標準データセット（SSDSE）: \url{https://www.nstac.go.jp/use/literacy/ssdse/\#SSDSE-E}}から，著者が抜粋・加工したデータを用います．
+加工済みのデータのファイル（\graybox{SSDSE.db}）はコチラのURL（\url{https://xxxxxxx}）よりダウンロードできます．
+クイズで利用するテーブルは以下の3つとなります．
+\begin{itemize}
+\item \graybox{population}テーブル
+\item \graybox{university\_student\_population\_top10}テーブル
+\item \graybox{activity}テーブル
+\end{itemize}
+
+\graybox{population}テーブルは，\ref{chap:sql-part1}章のクイズで用いたものです．
+テーブルの内容は表\ref{tab:population-table}を参照してください．
+
+表\ref{tab:university_student_population_top10}のとおり，\graybox{university\_student\_population\_top10}テーブルには，大学学生数が上位10位内であった都道府県の「地域コード」「都道府県」「総人口」が格納されています．
+
+\begin{table}[tb]
+    \centering
+    \caption{\graybox{university\_student\_population\_top10}テーブルの内容}
+    \scalebox{0.99}{
+    \begin{tabular}{rrr}
+    \toprule
+    \textbf{地域コード} &
+      \textbf{都道府県} &
+      \textbf{総人口} \\ \midrule
+R13000 & 東京都 & 14010000 \\
+R27000 & 大阪府 & 8806000 \\
+R23000 & 愛知県 & 7517000 \\
+R14000 & 神奈川県 & 9236000 \\
+R26000 & 京都府 & 2561000 \\
+R28000 & 兵庫県 & 5432000 \\
+R40000 & 福岡県 & 5124000 \\
+R11000 & 埼玉県 & 7340000 \\
+R12000 & 千葉県 & 6275000 \\
+R01000 & 北海道 & 5183000 \\ \bottomrule
+    \end{tabular}
+    }
+    \label{tab:university_student_population_top10}
+\end{table}
+
+表\ref{tab:activity}のように，\graybox{activity}テーブルには，「学習・自己啓発・訓練」「スポーツ」「趣味・娯楽」「ボランティア」「旅行・行楽」について過去1年以内に活動したことのある人の割合（％）が，都道府県別にまとめられています．．
+\begin{table}[tb]
+    \centering
+    \caption{\graybox{activity}テーブルの内容}
+    \scalebox{0.75}{
+    \begin{tabular}{rrrrrrr}
+    \toprule
+    \textbf{地域コード} & \textbf{都道府県} & \textbf{学習・自己啓発・訓練} & \textbf{スポーツ} & \textbf{趣味・娯楽} & \textbf{ボランティア} & \textbf{旅行・行楽} \\ \midrule
+R01000 & 北海道 & 35.0 & 62.2 & 85.4 & 16.3 & 51.0 \\
+R02000 & 青森県 & 25.4 & 52.1 & 78.6 & 14.0 & 36.6 \\
+R03000 & 岩手県 & 28.9 & 59.1 & 82.9 & 24.4 & 45.3 \\
+R04000 & 宮城県 & 37.5 & 64.4 & 87.0 & 20.7 & 52.2 \\
+R05000 & 秋田県 & 29.2 & 57.1 & 82.1 & 20.9 & 44.8 \\
+R06000 & 山形県 & 31.1 & 58.4 & 82.4 & 23.6 & 44.3 \\
+     & & & $\vdots$ & & & \\ \bottomrule
+    \end{tabular}
+    }
+    \label{tab:activity}
+\end{table}
+
+
+\subsection*{Q1. 集合演算（1/2）}
+\graybox{population}テーブルにあるレコードのうち，大学学生数が\graybox{7万}以上かつ小学校児童数が\graybox{30万}以上の都道府県名を表示するSQL文を書きなさい．
+なお，表示の際には都道府県名の重複は除くこと．
+
+\subsection*{Q2. 集合演算（2/2）}
+上記Q1と同様の内容を表示するSQL文を\graybox{INTERSECT}句を用いて書きなさい．
+
+\subsection*{Q3. 直積}
+\graybox{population}テーブルと\graybox{activity}テーブルの直積を求めるSQL文を書きなさい．
+
+\subsection*{Q4. 内部結合}
+\graybox{population}テーブルと\graybox{activity}テーブルをカラム「地域コード」が等しいという条件で内部結合を行うSQL文を書きなさい．
+ただし，結果表示時には重複するフィールド（すなわち「地域コード」「都道府県名」）は除くこと．
+
+\subsection*{Q5. 直積再び}
+上記Q4と同様の内容を表示するSQL文を\graybox{JOIN}を用いずに書きなさい．
+
+\subsection*{Q6. 外部結合}
+\graybox{university\_student\_population\_top10}テーブルに対して「地域コード」が等しいという条件で\graybox{activity}テーブルを左外部結合しなさい．
+
+\subsection*{Q7. 副問い合わせ（1/2）}
+\graybox{population}テーブルにおいて調査年度が\graybox{2021}時点の小学校児童数上位20件のレコードを求め，それらと\graybox{activity}テーブルの内容を結合した内容を表示するSQL文を書きなさい．
+
+\subsection*{Q8. 副問い合わせ（2/2）}
+\graybox{activity}テーブルにおいて「ボランティア」の値が上位10件以内に入る都道府県を求めるSQL文を考えなさい．
+その上で，\graybox{population}テーブルを用いて，「ボランティア」の値が上位10件以内に入る各都道府県の調査期間（2020および2021）における平均総人口を求めるSQL文を書きなさい．
