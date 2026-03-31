@@ -24,6 +24,7 @@
 \usepackage[T1]{fontenc} % フォントのエンコーディングを指定
 \usepackage{lmodern} % ラテンモダンフォントを指定
 \usepackage{xcolor} % 文字の色を変えられるように
+\usepackage{okumacro}
 
 % -------------
 % 数学表記系パッケージ
@@ -68,6 +69,16 @@
 % - 1ページあたりの文字数は37文字×32行
 % ------------
 \begin{document}
+\begin{titlepage}
+    \vspace*{2cm}
+    \noindent{\LARGE 関係データベース入門}\\
+    \noindent{\large データにまつわる悲劇を防ぐデータベース設計とSQLの基礎}\\[2cm]
+    \noindent{\large 山本 祐輔}
+    \vfill
+    %{\large 森北出版}\\
+    %{\large \today}
+\end{titlepage}
+
 % 前書き
 \frontmatter
 \input{chapter/preface.tex}

@@ -26,12 +26,12 @@
 \end{equation*}
 山畑さんはサイトで取り扱っている商品であれば必ず「注文」テーブルの中に現れるし，「注文」テーブルには商品名だけでなく商品の価格に関する情報が含まれるのだから，サイトで取り扱っている商品の情報の管理も「注文」テーブルの中で済ませてしまおうと考えました．
 その結果，ある時点で「注文」テーブルのレコードは図\ref{fig:order}のようになりました．
-\figure[h]
+\begin{figure}[h]
   \centering
   \includegraphics[width=0.7\textwidth]{figure/anomaly/order.pdf}
   \caption{ある時点までに蓄積された「注文」テーブル}
   \label{fig:order}
-\endfigure
+\end{figure}
 
 さて，山畑さんのショッピングサイトでは，新商品として\graybox{たきのこの里山}の取り扱いを開始することになりました．
 新商品の情報をデータベースに登録するために，山畑さんは図\ref{fig:insertion-anomaly}のように「注文」テーブルに\graybox{(NULL, NULL, 'たきのこの里山', 250, NULL)}というレコードを追加しようとします．
@@ -41,12 +41,12 @@
 そのため，主キーの値がないレコード\graybox{(NULL, NULL, 'たきのこの里山', 250, NULL)}はキー制約違反となって追加できないのです．
 誰かが新商品を注文してくれないと新商品の情報をデータベースに登録できないとは，なんと不便なことでしょう．
 山畑さんは「まだ誰も注文していない新商品」を登録できず，困ってしまいました…
-\figure[tb]
+\begin{figure}[tb]
   \centering
   \includegraphics[width=0.9\textwidth]{figure/anomaly/insertion-anomaly.pdf}
   \caption{挿入時異状の例}
   \label{fig:insertion-anomaly}
-\endfigure
+\end{figure}
 このように，特定のレコードを挿入しようとしたときに，必要なデータが存在しないためにレコード登録ができない不都合な状態を\strong{挿入時異状（insertion anomaly）} と呼びます．
 
 
@@ -59,17 +59,17 @@
 このような状況では，図\ref{fig:order}の3行目（注文IDが\graybox{O3}）のレコードを削除すると，図\ref{fig:deletion-anomaly}の状態になり，山畑さんのサイトで商品\graybox{のど飴}を取り扱っている事実や，商品の詳細情報（単価情報など）が意図しない形で失われてしまいます．
 ユーザ\graybox{U2}は「注文をキャンセルしたかっただけ」なのに，サイト上は「\graybox{のど飴}という商品の存在そのものをデータベースから抹消してしまった」ことになります．
 もし他のユーザが\graybox{のど飴}を買おうとしても，もうお店のサイトには並んでいない状態になってしまうのです．
-このように削除時異状とは，あるレコードを削除したときに，残しておきたかった別の情報まで意図せずに消えてしまう状態を指します，
-\figure[tb]
+このように削除時異状とは，あるレコードを削除したときに，残しておきたかった別の情報まで意図せずに消えてしまう状態を指します．
+\begin{figure}[tb]
   \centering
   \includegraphics[width=0.8\textwidth]{figure/anomaly/deletion-anomaly.pdf}
   \caption{削除時異状の例}
   \label{fig:deletion-anomaly}
-\endfigure
+\end{figure}
 
 ところで，注文IDが\graybox{O3}のレコードを削除した後，山畑さんはのど飴の商品情報が消えてしまったことに気づいたとしましょう．
 このとき，山畑さんが\graybox{(NULL, NULL, 'のど飴', 170, NULL)}というレコードを焦って追加して，\graybox{のど飴}の商品情報を復活させようとしても後の祭りです．
-なぜなら，注文IDが存在しないため，このレコード追加しようとしても先に説明した挿入時異状が発生するからです．
+なぜなら，注文IDが存在しないため，このレコードを追加しようとしても先に説明した挿入時異状が発生するからです．
 
 
 \section{更新時異状}
@@ -85,12 +85,12 @@
 ここで，山畑さんは「注文」テーブルの中でサイトの取扱商品も管理していたことを思い出してください．
 先ほどのような修正忘れがあると，「注文」テーブルの中で同じ商品にも関わらず単価が異なる\graybox{はーいお茶}が存在することになり，どちらの単価が正しいのか分からない状態になってしまいます．
 このように，一部のレコードの値を変更する際，更新漏れによるデータの矛盾が発生している状態を更新時異状と呼びます．
-\figure[tb]
+\begin{figure}[tb]
   \centering
   \includegraphics[width=0.9\textwidth]{figure/anomaly/update-anomaly.pdf}
   \caption{更新時異状の例}
   \label{fig:update-anomaly}
-\endfigure
+\end{figure}
 
 今回の例では「はーいお茶の単価が120円の間違いだった」という単一の商品に関する修正事象にもかかわらず，データベース上では2件のレコードの書き換え（修正）の必要がありました．
 図\ref{fig:update-anomaly}の例では\graybox{はーいお茶}の注文履歴が2件しかありませんでしたが，修正対象となる履歴が100万件あれば100万回の修正が必要になります．
@@ -112,12 +112,12 @@
 また，注文IDが\graybox{O3}のレコードを削除しても，「商品」テーブルの中の「のど飴」のレコードは残るため，削除時異状も発生しません．
 「はーいお茶」の価格を変更する必要が生じても，「商品」テーブルの中の「はーいお茶」のレコードの「価格」を1箇所書き換えるだけで済むため，更新時異状も発生しません．
 「注文」テーブルには商品の単価情報がありませんが，必要なときは「商品」テーブルを参照すれば，該当する商品の単価を知ることができます．
-\figure[tb]
+\begin{figure}[tb]
   \centering
   \includegraphics[width=0.9\textwidth]{figure/anomaly/decomposition-example.pdf}
   \caption{「注文」テーブルから商品に関する属性を切り離して「商品」テーブルを作ることによって異状を防ぐ例}
   \label{fig:decomposition-example}
-\endfigure
+\end{figure}
 
 このように，データベースの異状は関係スキーマ（テーブルの構造）を適切に設計することによって防ぐことができます\cite{Bernstein1976}．
 今回の例では「注文」テーブルから商品に関する情報を切り出して「商品」テーブルを作ればよいということが直感的に分かりました．
@@ -131,7 +131,7 @@
 % ---------------------------------------
 \subsubsection{Q1. 異状の分類}
 ある大学の授業システム上で，以下のような「履修登録」テーブルが作られました．
-主キーは\graybox{\{学生ID, 科目ID}\}です．
+主キーは\graybox{\{学生ID, 科目ID\}}です．
 
 \begin{equation*}
   \text{履修登録}(\underline{\text{学生ID, 科目ID}}, \text{学生名}, \text{科目名}, \text{担当教員})
@@ -159,12 +159,12 @@
 
 図\ref{fig:sale-history}は，関係スキーマ「営業記録」にしたがって八高家具における営業記録を記録したテーブルです．
 営業担当者の成績の修正に際して，関係「営業記録」のみを用いてデータを管理する際に発生しうる更新時異状の例を挙げなさい．
-\figure[htb]
+\begin{figure}[htb]
   \centering
   \includegraphics[width=0.7\textwidth]{figure/anomaly/sale-history.png}
   \caption{八高家具の「営業記録」テーブル}
   \label{fig:sale-history}
-\endfigure
+\end{figure}
 
 
 \subsubsection{Q3. 削除時異状}
@@ -174,13 +174,13 @@
 \end{equation*}
 
 図\ref{fig:sale-history2}は，関係スキーマ「営業記録2」にしたがって営業記録を記録したテーブルです．
-営業担当者の成績の修正に際して，関係「営業記録2」のみを用いてデータを管理する際に発生しうる削除時異状の例を挙げなさい．
-\figure[htb]
+関係「営業記録2」のみを用いてデータを管理する際に発生しうる削除時異状の例を挙げなさい．
+\begin{figure}[htb]
   \centering
   \includegraphics[width=0.7\textwidth]{figure/anomaly/sale-history2.png}
   \caption{八高家具の「営業記録2」テーブル}
   \label{fig:sale-history2}
-\endfigure
+\end{figure}
 
 
 \subsubsection{Q4. 挿入時異状}
@@ -190,12 +190,12 @@
 \end{equation*}
 
 図\ref{fig:sale-history3}は，関係スキーマ「営業記録3」にしたがって営業記録を記録したテーブルです．
-営業担当者の成績の修正に際して，関係「営業記録3」のみを用いてデータを管理する際に発生しうる挿入時異状の例を挙げなさい．
-\figure[htb]
+関係「営業記録3」のみを用いてデータを管理する際に発生しうる挿入時異状の例を挙げなさい．
+\begin{figure}[htb]
   \centering
   \includegraphics[width=0.7\textwidth]{figure/anomaly/sale-history3.png}
   \caption{八高家具の「営業記録3」テーブル}
   \label{fig:sale-history3}
-\endfigure
+\end{figure}
 
 
