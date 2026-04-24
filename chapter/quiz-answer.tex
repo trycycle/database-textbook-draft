@@ -1,0 +1,52 @@
+\chapter{クイズの略解}
+
+\subsection*{第2章 データベースの基礎知識}
+\begin{itemize}
+    \item \textbf{Q1}: 代表的なDBMSとしてMySQL，PostgreSQL，Oracle Databaseなどが挙げられ，これらはRDBMS（関係データベース）に分類される．それ以外（NoSQL等）のDBMSも存在する
+    \item \textbf{Q2}: 線形探索では平均して $\frac{n+1}{2}$ 回の確認が必要となるため，100万件の場合は平均50万回となる．
+    \item \textbf{Q3}: オンラインショッピング（購買・在庫管理），SNS（ユーザ管理），ブログ（記事管理）などが考えられる．
+    \item \textbf{Q4}: CSVはカンマ区切り，TSVはタブ区切りのテキストファイル．表データを扱うために利用される．欠点として，大規模データ処理の困難さ，データ型や制約の欠如，同時アクセス制御の不備が挙げられる．
+    \item \textbf{Q5}: データベース分野のチューリング賞受賞者として，Jim GrayやMichael Stonebrakerなどが該当する．
+\end{itemize}
+
+\subsection*{第3章 関係データモデル}
+\begin{itemize}
+    \item \textbf{Q1}: $3 \times 2 \times 3 = 18$通りの組み合わせすべてを列挙する．
+    \item \textbf{Q2}: 上記直積の部分集合として任意に定義可能．
+    \item \textbf{Q3}: スキーマに従い，見出し行を含めた5〜6行の表を作成する．
+    \item \textbf{Q4}: 各属性が取り得る値の型や範囲（例: 自然数，特定の文字列集合など）をドメインとして定義する．
+    \item \textbf{Q5}: 数値が入るべき箇所に文字列が入っているなど，定義したドメインに違反するデータ例を挙げる．
+    \item \textbf{Q6}: 主キー \{A, B\} を含む上位集合（例: \{A, B, C\}，\{A, B, C, D\}）が該当する．
+    \item \textbf{Q7}: (1) 従業員番号 $\rightarrow$ 従業員名, 部門コード, 生年月日, 住所． (2) 候補キーは「従業員番号」である．
+    \item \textbf{Q8}: 候補となる主キーは \{店舗コード, 会員番号\}．
+    \item \textbf{Q9}: 「購買」テーブルの顧客ID，店舗ID，商品ID，「商品」テーブルの商品カテゴリIDなどに，それぞれ対応するマスタテーブルへの参照整合性制約を定義する．
+\end{itemize}
+
+\subsection*{第4章 SQL - その1}
+\begin{itemize}
+    \item \textbf{Q1〜Q9}: 提示された \graybox{SSDSE.db} 内の \graybox{population} テーブルの構造に従い，\graybox{SELECT}, \graybox{FROM}, \graybox{WHERE}, \graybox{ORDER BY}, \graybox{GROUP BY}, \graybox{HAVING} の各句を適切に用いてSQL文を記述する．
+\end{itemize}
+
+\subsection*{第5章 データベースの異状}
+\begin{itemize}
+    \item \textbf{Q1}: (1) 挿入時異状，(2) 更新時異状，(3) 削除時異状．
+    \item \textbf{Q2}: 更新時異状の例: 特定の営業担当者の成績を変更する際，同じ担当者が複数行に存在する場合に一部のレコードの修正漏れが生じ，データに矛盾が発生する．
+    \item \textbf{Q3}: 削除時異状の例: あるユーザの営業記録を削除すると，その商品や営業担当の連絡先情報まで意図せずデータベースから消滅してしまう．
+    \item \textbf{Q4}: 挿入時異状の例: まだ誰も購入（ユーザとの関連）していない新しい商品やメーカーの情報を，テーブルに登録することができない．
+\end{itemize}
+
+\subsection*{第6章 関係データベースの設計 - 実体関連モデル}
+\begin{itemize}
+    \item \textbf{Q1〜Q5}: 提示されたシナリオから「実体」「関連」「属性」を特定し，多重度（1対多，多対多など），参加制約，弱実体，汎化・継承，n項関連のルールに従ってER図を拡張・設計する．
+    \item \textbf{Q6}: ER図から関係スキーマへの変換ルール（実体はそのまま表へ，多対多の関連は両者の主キーを持たせた新しい表へ，1対多は外部キーとして属性を追加）を適用し，スキーマを定義する．
+\end{itemize}
+
+\subsection*{第7章 関係データベースの設計 - 正規化}
+\begin{itemize}
+    \item \textbf{Q1〜Q4}: 与えられた関係スキーマと関数従属性の集合（FDダイアグラム）に基づき，情報無損失分解の手順を繰り返す．主キーの真の部分集合や非キー属性に関数従属している部分を別テーブルに切り出し，第3正規形（3NF）またはボイス・コッド正規形（BCNF）まで正規化する．
+\end{itemize}
+
+\subsection*{第8章 SQL - その2}
+\begin{itemize}
+    \item \textbf{Q1〜Q8}: 提示された \graybox{SSDSE.db} の複数テーブル (\graybox{population}, \graybox{activity}, \graybox{university\_student\_population\_top10}) を用い，和集合(\graybox{UNION})，積集合(\graybox{INTERSECT})，外部結合(\graybox{LEFT OUTER JOIN})，および副問い合わせを駆使してSQL文を記述する．
+\end{itemize}
