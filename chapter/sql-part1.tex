@@ -490,8 +490,7 @@ SQL文では改行や余分な空白は無視されます．
 を抽出することができます．
 
 コード\ref{code:sql-where4}は，テーブル「商品」から列「メーカー」の値が\graybox{N製菓}でかつ列「価格」の値が\graybox{500}以上のレコードを抽出するSQL文の例です．
-このSQLを実行すると，表\ref{tab:sql-where4}のように，列「メーカー」の値が\graybox{N製菓}
-でかつ列「価格」の値が\graybox{500}以上のレコードが抽出され，その「商品名」「価格」「在庫数」の値が表示されます．
+このSQLを実行すると，表\ref{tab:sql-where4}のように，条件を満たすレコードが抽出され，その「商品名」「価格」「在庫数」の値が表示されます．
 \begin{figure}[h]
     \begin{minted}[gobble=1,
         bgcolor=background,
