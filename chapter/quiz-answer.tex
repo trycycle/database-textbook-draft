@@ -19,12 +19,12 @@
     \item \textbf{Q6}: 主キー \{A, B\} を含む上位集合（例: \{A, B, C\}，\{A, B, C, D\}）が該当する．
     \item \textbf{Q7}: (1) 従業員番号 $\rightarrow$ 従業員名, 部門コード, 生年月日, 住所． (2) 候補キーは「従業員番号」である．
     \item \textbf{Q8}: 候補となる主キーは \{店舗コード, 会員番号\}．
-    \item \textbf{Q9}: 「購買」テーブルの顧客ID，店舗ID，商品ID，「商品」テーブルの商品カテゴリIDなどに，それぞれ対応するマスタテーブルへの参照整合性制約を定義する．
+    \item \textbf{Q9}: テーブル「購買」の属性「顧客ID」「店舗ID」「商品ID」，テーブル「商品」の属性「商品カテゴリID」などに，それぞれ対応するマスタテーブルへの参照整合性制約を定義する．
 \end{itemize}
 
 \subsection*{第4章 SQL - その1}
 \begin{itemize}
-    \item \textbf{Q1〜Q9}: 提示された \graybox{SSDSE.db} 内の \graybox{population} テーブルの構造に従い，\graybox{SELECT}, \graybox{FROM}, \graybox{WHERE}, \graybox{ORDER BY}, \graybox{GROUP BY}, \graybox{HAVING} の各句を適切に用いてSQL文を記述する．
+    \item \textbf{Q1〜Q9}: 提示された \graybox{SSDSE.db} 内の ``population'' テーブルの構造に従い，\graybox{SELECT}, \graybox{FROM}, \graybox{WHERE}, \graybox{ORDER BY}, \graybox{GROUP BY}, \graybox{HAVING} の各句を適切に用いてSQL文を記述する．
 \end{itemize}
 
 \subsection*{第5章 データベースの異状}
@@ -38,15 +38,32 @@
 \subsection*{第6章 関係データベースの設計 - 実体関連モデル}
 \begin{itemize}
     \item \textbf{Q1〜Q5}: 提示されたシナリオから「実体」「関連」「属性」を特定し，多重度（1対多，多対多など），参加制約，弱実体，汎化・継承，n項関連のルールに従ってER図を拡張・設計する．
-    \item \textbf{Q6}: ER図から関係スキーマへの変換ルール（実体はそのまま表へ，多対多の関連は両者の主キーを持たせた新しい表へ，1対多は外部キーとして属性を追加）を適用し，スキーマを定義する．
+    \item \textbf{Q6}: 図\ref{fig:erd-to-schema}のER図を変換ルールに従い，以下の6つの関係スキーマに変換する．
+    \begin{itemize}
+        \item $\text{\textbf{ユーザ}}(\underline{\text{ユーザ名}}, \text{氏名}, \text{email}, \text{住所})$（変換パターン1）
+        \item $\text{\textbf{有料会員}}(\underline{\text{ユーザ名}}, \text{登録日})$（変換パターン3；継承のためキーは継承元の「ユーザ名」）
+        \item $\text{\textbf{商品}}(\underline{\text{商品ID}}, \text{商品名}, \text{発売日}, \text{価格})$（変換パターン1）
+        \item $\text{\textbf{注文}}(\underline{\text{注文ID}}, \text{注文日})$（変換パターン1）
+        \item $\text{\textbf{購買履歴}}(\underline{\text{注文ID}}, \text{ユーザ名})$（変換パターン2；多対1のため矢印のない「注文」側の主キーが関係のキー，「ユーザ名」は外部キー）
+        \item $\text{\textbf{明細}}(\underline{\text{注文ID}, \text{商品ID}}, \text{数量})$（変換パターン2；多対多のため両実体の主キーの組がキー，「注文ID」「商品ID」はそれぞれ外部キー）
+    \end{itemize}
 \end{itemize}
 
 \subsection*{第7章 関係データベースの設計 - 正規化}
 \begin{itemize}
-    \item \textbf{Q1〜Q4}: 与えられた関係スキーマと関数従属性の集合（FDダイアグラム）に基づき，情報無損失分解の手順を繰り返す．主キーの真の部分集合や非キー属性に関数従属している部分を別テーブルに切り出し，第3正規形（3NF）またはボイス・コッド正規形（BCNF）まで正規化する．
+    \item \textbf{Q1-1}: 同じ楽曲を評価するタプル間では「アーティスト」「収録アルバム」「ジャンル」が常に一致し，「スコア」はユーザごとに異なりうる例を5〜6件作成する．
+    \item \textbf{Q1-2}: 省略
+    \item \textbf{Q1-3}: 候補キー \{ユーザ名, 楽曲\} のもとで，以下の2ステップでBCNFへ分解する．
+    \begin{enumerate}
+        \item $FD_4: 収録アルバム \to アーティスト$で分解．\textbf{アルバム}(\underline{収録アルバム}, アーティスト)（BCNF），\textbf{残余スキーマ}（ユーザ名, 楽曲, 収録アルバム, ジャンル, スコア）（第1正規形）が得られる．
+        \item $FD_{2,3}: 楽曲 \to 収録アルバム, ジャンル$で分解．\textbf{楽曲情報}(\underline{楽曲}, 収録アルバム, ジャンル)（BCNF），\textbf{評価}(\underline{ユーザ名, 楽曲}, スコア)（BCNF）が得られる．
+    \end{enumerate}
+    \item \textbf{Q2}: $FD_2$，$FD_3$，$FD_4$の順で分解しても，本文の例（$R_6 \sim R_9$）と同一のBCNFスキーマ集合が得られる（分解の順序は最終結果に影響しない）．各ステップで切り出したスキーマはBCNFとなり，残余スキーマは次のステップへ引き継がれる．
+    \item \textbf{Q3}: 候補キーは $\{A, B\}$ と $\{A, C\}$ の2つ（$FD_1$: $A, B \to C$ と $FD_2$: $C \to B$ により，$A$ と $B$ または $C$ があれば全属性が決まるため）．$FD_5: E \to F$で分解後，$FD_{3, 4}: C \to D, E$で分解すると，$R_1(\underline{E}, F)$（BCNF），$R_2(\underline{C}, D, E)$（BCNF），$R_3(A, B, C)$（第3正規形）が得られる．$R_3(A, B, C)$ を $FD_2$ でさらに分解するとBCNFが得られるが，$FD_1: A, B \to C$が保持できなくなるため第3正規形で留める．
+    \item \textbf{Q4}: $FD_1$，$FD_2$，$FD_3$の順で分解すると，すべてBCNFの以下の4スキーマが得られる：$R_1(\underline{\text{選手}}, \text{出身校})$，$R_2(\underline{\text{チーム}}, \text{チーム創立年})$，$R_3(\underline{\text{チーム, 年度}}, \text{監督})$，$R_4(\underline{\text{選手, 年度}}, \text{チーム})$．
 \end{itemize}
 
 \subsection*{第8章 SQL - その2}
 \begin{itemize}
-    \item \textbf{Q1〜Q8}: 提示された \graybox{SSDSE.db} の複数テーブル (\graybox{population}, \graybox{activity}, \graybox{university\_student\_population\_top10}) を用い，和集合(\graybox{UNION})，積集合(\graybox{INTERSECT})，外部結合(\graybox{LEFT OUTER JOIN})，および副問い合わせを駆使してSQL文を記述する．
+    \item \textbf{Q1〜Q8}: 提示された \graybox{SSDSE.db} の複数テーブル (``population'', ``activity'', ``university\_student\_population\_top10'') を用い，和集合(\graybox{UNION})，積集合(\graybox{INTERSECT})，外部結合(\graybox{LEFT OUTER JOIN})，および副問い合わせを駆使してSQL文を記述する．
 \end{itemize}
