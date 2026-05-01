@@ -1,0 +1,489 @@
+\chapter{pandasによるデータベース問い合わせ結果の処理}\label{chap:pandas}
+
+\ref{chap:sql-part1}章や\ref{chap:sql-part2}章で学んだSQLを使えば，関係データベースから必要なデータを自由自在に抽出できるようになりました．これで皆さんは，巨大なデータの山から必要な情報を探し出す強力な武器を手に入れたことになります．
+
+しかし，実際のデータ分析やAI開発の現場では，データベースからデータを取り出した「後」に，さらに複雑な作業が待ち受けています．
+例えば，取り出したデータに対して高度な統計計算を行ったり，データを機械学習モデルに読み込ませるための特殊なデータ変換（前処理）を行ったりする作業です．
+
+こうした後続作業は，データベース言語であるSQLだけで完結させるのは非常に困難です．
+そこで登場するのが，プログラミング言語を用いたデータ処理です．
+現在，データサイエンスの世界で事実上の標準言語となっているPythonと，その強力なデータ分析ライブラリである\strong{pandas}を活用することで，データ分析の「前処理」の問題を柔軟に解決することができます．
+pandasは行列データを効率的に扱うNumPyライブラリをベースに実装されていることもあり，機械学習ライブラリとの相性が良いです．
+実際，機械学習のためのライブラリとして最も有名なScikit-Learnは，pandasのデータフレーム（後述）を直接入力として受け取ることができます．
+
+本章では，関係データベースから抽出したデータをPythonのpandasで処理し，機械学習へとつなぐための最低限のテクニックを速習します．
+SQLとpandasを組み合わせることで，データベースを起点とした一連のデータ分析フローを一通りできるようになることが本章のゴールです．
+pandasの詳しい使い方や様々な前処理テクニックについては，公式ドキュメント\footnote{pandas公式ドキュメント: \url{https://pandas.pydata.org/docs/}}や参考書\cite{前処理大全}などを参照してください．
+
+\begin{notebox}{pandasの読み方と由来}
+pandasは「パンダス」と読みます．動物のパンダとは直接の関係はなく，その名前はPythonによるデータ解析（\textit{Python Data Analysis}）を略した造語に由来するという説や，計量経済学で用いられる多次元データ「パネルデータ（\textit{panel data}）」に由来するという説が有力です．
+\end{notebox}
+
+% ==============================================================
+\section{SQLとpandasの役割分担}
+% ==============================================================
+具体的なテクニックを見る前に，なぜSQLだけでなくpandasを学ぶ必要があるのか，その役割分担について整理しておきましょう．
+
+SQLは，関係データベースという「巨大なデータの倉庫」の中で，条件に合うデータを探し出したり，基本的な集計を行ったりするのに特化しています．
+一方，pandasは，取り出したデータを手元の計算機のメモリ上に展開し，Pythonの柔軟なプログラミング機能を駆使して「データを加工・変換する」ことに特化しています．
+この特徴を踏まえた，SQLとpandasの具体的な役割分担は以下の通りです：
+\begin{itemize}
+    \item \strong{SQL：} 大規模データからの高速な絞り込み，テーブル同士の結合，単純な集計（売上合計など）．
+    \item \strong{pandas：} 欠損値（空欄）の高度な穴埋め，文字列の複雑な加工，機械学習向けのデータ変換，他ライブラリ（グラフ描画やAIモデル）との連携．
+\end{itemize}
+
+実際のデータ分析プロジェクトでは，「\strong{SQLで必要なデータを絞り込んで抽出し，pandasで統計モデリングや機械学習用に加工する}」というのが典型的なワークフローとなります．
+数億件のデータをいきなりpandasで読み込もうとすると，PCのメモリがパンクしてしまいます．
+データベース側でできる絞り込みはSQLに任せ，複雑な処理だけをpandasで行うという役割分担を意識しましょう．
+
+% ==============================================================
+\section{DataFrame（データフレーム）とは}
+% ==============================================================
+pandasの中心となる概念が\strong{DataFrame（データフレーム）}です．
+データフレームは，ExcelやGoogleスプレッドシートの「シート」に相当するもので，行と列からなる2次元の表形式データを扱うためのデータ構造です．
+
+関係データベースの「テーブル（表）」と非常に似ていますが，Pythonのプログラム上で柔軟に操作できる点が特徴です．
+関係データベースとpandasの用語の対応関係を表\ref{tab:pandas-df-vs-table}にまとめました．
+
+\begin{table}[tb]
+    \centering
+    \caption{関係データベースのテーブルとデータフレームの用語の比較}
+    \begin{tabular}{ll}
+    \toprule
+    \textbf{関係データベースのテーブル} & \textbf{pandasのデータフレーム} \\ \midrule
+    テーブル（表）       & DataFrame（データフレーム） \\
+    行（レコード / タプル）       & 行（row）\\
+    列（カラム / 属性）         & 列（column）\\
+    %列（カラム / 属性）         & 列（column / series）\\
+    主キー               & インデックス（index）\\ \bottomrule
+    \end{tabular}
+    \label{tab:pandas-df-vs-table}
+\end{table}
+
+% データフレームから「1つの列だけ」を取り出したものは，\strong{Series（シリーズ）}と呼ばれる1次元のデータ構造になります．
+% データフレームは「Seriesの集まり」でできていると考えると理解しやすいでしょう．
+
+% ==============================================================
+\section{分析環境の準備とデータの読み込み}
+% ==============================================================
+それでは，実際にpandasを使ってみましょう．
+本章でも，これまでの章で用いてきた小売店ショッピングサイトの仮想データベース（\graybox{sql2-example.db}）を使用します．
+
+\subsection{ライブラリのインストールとインポート}
+まずは，pandasと，データベース接続に必要となるSQLAlchemyというライブラリをインストールします．
+pandasが未インストールの場合は，ターミナルでコード\ref{code:pandas-install}のコマンドを実行してインストールしてください．
+
+\begin{figure}[tb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{bash}
+
+    pip install pandas sqlalchemy
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{pandasおよびSQLAlchemyのインストール}
+    \label{code:pandas-install}
+\end{figure}
+
+インストールが完了したら，Pythonのスクリプト（またはJupyter Notebook）の先頭でこれらをインポートし，データベースへの接続準備を行います．
+
+\begin{figure}[tb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{python}
+
+    import pandas as pd
+    import sqlalchemy
+
+    # SQLiteデータベースへの接続エンジンを作成する
+    db_path = 'sql2-example.db'
+    engine = sqlalchemy.create_engine(f'sqlite:///{db_path}')
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{ライブラリのインポートと関係データベースへの接続}
+    \label{code:pandas-import}
+\end{figure}
+
+慣習として，pandasは\graybox{pd}という短い別名をつけてインポートします．
+\graybox{create\_engine}は，データベースへの接続情報を管理するオブジェクトを作成する関数です．
+
+\subsection{SQLを発行してデータフレームを作成する}
+準備が整ったら，データベースにSQLクエリを発行し，その結果をそのままデータフレームとして受け取ってみましょう．
+使用するのは\graybox{pd.read\_sql()}関数です．
+
+\begin{figure}[tb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{python}
+
+    # 「商品」テーブルの全レコードを取得する
+    sql = 'SELECT * FROM 商品;'
+    df_products = pd.read_sql(sql, engine)
+
+    # 中身を確認する（先頭の数件を表示する）
+    print(df_products.head())
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{\texttt{read\_sql()}によるデータベースからの読み込み}
+    \label{code:pandas-read-sql}
+\end{figure}
+
+このように，第1引数に実行したいSQL文，第2引数に接続エンジンを渡すだけで，SQLの実行結果がPythonのデータフレームに変換されます．
+\graybox{read\_sql}関数には，単なる全件取得だけでなく，\graybox{JOIN}や\graybox{GROUP BY}を含む複雑なSQL文を渡すことも可能です．
+
+% ==============================================================
+\section{データフレームの基本操作}
+% ==============================================================
+データを読み込んだら，その全体像を把握することがデータ分析の第一歩です．
+
+\subsection{データの概要確認}
+コード\ref{code:pandas-overview}のメソッドを使うことで，読み込んだデータフレームのサイズや列の構成，欠損値（空欄）の有無をすばやく確認できます．
+特に\graybox{info()}メソッドは重要です．
+各列のデータの型（文字が入っているのか，数値が入っているのか等）や，データが欠損している行の数を一目で把握できます．
+データの前処理を始める前に，必ず実行する習慣をつけましょう．
+
+\begin{figure}[tb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{python}
+
+    df_products.shape        # データフレームの行数と列数を返す
+    df_products.columns      # 列名の一覧を返す
+    df_products.info()       # 列ごとのデータ型と非NULL値の数を表示する
+    df_products.describe()   # 数値列の基本統計量（平均，最大値など）を表示する
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{データフレームの概要の確認}
+    \label{code:pandas-overview}
+\end{figure}
+
+
+\subsection{列の参照と行の絞り込み}
+SQLの\graybox{SELECT 列名}に相当する，特定の列の情報を抽出する操作は，コード\ref{code:pandas-column-select}のようにデータフレームに対して角括弧\graybox{[]}を使って行います．
+
+\begin{figure}[tb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{python}
+
+    # 1つの列だけを取り出す
+    names = df_products['商品名']
+
+    # 複数の列を取り出す
+    subset_df = df_products[['商品名', '価格', 'カテゴリ']]
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{列の参照}
+    \label{code:pandas-column-select}
+\end{figure}
+
+SQLの\graybox{WHERE}句に相当する行の絞り込みを行うには，コード\ref{code:pandas-filter}のように角括弧\graybox{[]}の中に条件式するか，\graybox{query}メソッドを使って記述します．
+
+\begin{figure}[tb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{python}
+
+    # 価格が5000円以上の商品を絞り込む
+    expensive_items = df_products[df_products['価格'] >= 5000]
+
+    # 文字列の条件検索：商品名に「カレー」が含まれるものを探す
+    curry_items = df_products[df_products['商品名'].str.contains('カレー')]
+
+    # query()メソッドを使うとSQLライクに書けて読みやすい
+    home_appliances = df_products.query('価格 >= 5000 & カテゴリ == "家電"')
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{行の絞り込み}
+    \label{code:pandas-filter}
+\end{figure}
+
+% ==============================================================
+\section{データの加工と集計}
+% ==============================================================
+分析を進める中で，新しい指標（列）を作ったり，特定の条件で集計し直したりする場面が多々あります．
+pandasでデータの加工や集計を行う方法を確認しておきましょう．
+
+\subsection{新しい列の追加と計算}
+コード\ref{code:pandas-new-column}のように代入演算を用いることで，データフレームに新しい列を追加したり，既存の列を使った計算結果を新しい列として格納したりすることができます．
+
+\begin{figure}[tb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{python}
+
+    # 「価格」と「在庫数」を掛けて，「在庫金額」という新しい列を作る
+    df_products['在庫金額'] = df_products['価格'] * df_products['在庫数']
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{列の追加と計算}
+    \label{code:pandas-new-column}
+\end{figure}
+
+\subsection{関数の適用}
+各行の値に対して独自の複雑な処理を行いたい場合は，\graybox{apply()}メソッドを使います．
+これにより，自分で定義した関数を列全体に一括で適用できます．
+コード\ref{code:pandas-apply}は，列「価格」の値に応じて価格帯のカテゴリを割り振るためのコード例です．
+
+\begin{figure}[tb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{python}
+
+    # 価格に応じて3段階のカテゴリに分類する関数
+    def classify_price(p):
+        if p >= 10000:
+            return '高価格'
+        elif p >= 3000:
+            return '中価格'
+        else:
+            return '低価格'
+
+    # applyメソッドで関数を列全体に適用する
+    df_products['価格帯'] = df_products['価格'].apply(classify_price)
+
+    # ラムダ式（無名関数）を使って1行で簡潔に書くこともできる
+    # 例：5000円以上の商品だけを1割引きにする
+    df_products['割引後価格'] = df_products['価格'].apply(
+        lambda p: p * 0.9 if p >= 5000 else p
+    )
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{\texttt{apply()}による関数の適用}
+    \label{code:pandas-apply}
+\end{figure}
+
+\subsection{グループ化と集計}
+SQLの\graybox{GROUP BY}と同じように，特定のカテゴリごとにデータをまとめて集計するには\graybox{groupby()}メソッドを使用します（コード\ref{code:pandas-groupby}参照）．
+
+\begin{figure}[tb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{python}
+
+    # カテゴリごとの在庫数の合計を計算する
+    stock_sum = df_products.groupby('カテゴリ')[['在庫数']].sum()
+
+    # カテゴリごとの価格の平均と最大値を一度に計算する
+    price_stats = df_products.groupby('カテゴリ').agg({'価格': ['mean', 'max']})
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{\texttt{groupby()}による集計}
+    \label{code:pandas-groupby}
+\end{figure}
+
+また，特定の値の出現頻度（そのカテゴリの商品がいくつあるか等）を数えたい場合は，コード\ref{code:pandas-value-counts}のように\graybox{value\_counts()}が便利です．
+
+\begin{figure}[tb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{python}
+
+    # カテゴリごとの商品数を数える
+    df_products['カテゴリ'].value_counts()
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{\texttt{value\_counts()}による頻度集計}
+    \label{code:pandas-value-counts}
+\end{figure}
+
+% ==============================================================
+\section{データフレームの結合（縦と横）}
+% ==============================================================
+データ分析では，複数の表データを結合して1つのデータセットにまとめる作業が頻繁に発生します．
+データフレーム同士を結合する方法を確認しておきましょう．
+
+\subsection{横方向の結合（merge）}
+SQLの\graybox{JOIN}に相当する操作が\graybox{merge()}です．
+共通の列（キー）を使って，2つのデータフレームを横方向につなぎ合わせます．
+コード\ref{code:pandas-merge}は，データフレーム\graybox{df\_orders}と\graybox{df\_products}を列「商品ID」の値をもとに結合するためのものです．
+\graybox{how}パラメータには，SQLと同様に\graybox{inner}（内部結合），\graybox{left}（左外部結合）などを指定できます．
+
+\begin{figure}[tb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{python}
+
+    # 注文テーブルを読み込む
+    df_orders = pd.read_sql('SELECT * FROM 注文', engine)
+
+    # 「商品ID」をキーにして，注文データに商品データを内部結合する
+    df_merged = pd.merge(df_orders, df_products, on='商品ID', how='inner')
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{\texttt{merge()}による横方向の結合}
+    \label{code:pandas-merge}
+\end{figure}
+
+\subsection{縦方向の結合（concat）}
+SQLの\graybox{UNION}に相当する操作が\graybox{concat()}です．
+同じ列構成を持つデータフレームを，縦に積み重ねます．
+コード\ref{code:pandas-concat}は，2024年の注文に関するデータが収められたデータフレーム\graybox{df\_2024}と2025年の注文データが納められた\graybox{df\_2025}が与えられたときに，2つのデータフレームを積み重ねて1つのデータフレームするためのコードです．
+注意点としては，SQLの\graybox{UNION}と同様，\graybox{concat}の対象となるデータフレームは列構造（列の順序も含む）が同じである必要があります．
+
+\begin{figure}[tb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{python}
+
+    # 2024年のデータと2025年のデータを縦につなぐ
+    # ignore_index=True を指定してインデックスを振り直す
+    df_all_years = pd.concat([df_2024, df_2025], ignore_index=True)
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{\texttt{concat()}による縦方向の結合}
+    \label{code:pandas-concat}
+\end{figure}
+
+% ==============================================================
+\section{機械学習のための前処理技法}
+% ==============================================================
+ここからがpandasの真骨頂です．
+SQLで抽出・結合したデータを，機械学習モデルが理解できる形に変換する「前処理」テクニックの基礎を学びましょう．
+
+\subsection{欠損値（NULL）の処理}
+関係データベースで外部結合（LEFT JOIN）を行った際などに発生する欠損値\graybox{NULL}は，pandasでは\graybox{NaN}（Not a Number）として表現されます．
+多くの機械学習モデルは欠損値が含まれていると計算エラーを起こしてしまうため，何らかの対処が必要です．
+コード\ref{code:pandas-missing-values}は，欠損値が含まれる行を削除したり，特定の列に含まれる欠損値を別の値に置換するコードの例です．
+
+\begin{figure}[tb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{python}
+
+    # NaNが含まれる行をまるごと削除する（情報が失われるので注意）
+    df_clean = df_merged.dropna()
+
+    # NaNを特定の値（例えば0や平均値）で穴埋めする
+    df_merged['評価スコア'] = df_merged['評価スコア'].fillna(3.0)
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{欠損値の処理}
+    \label{code:pandas-missing-values}
+\end{figure}
+
+\subsection{カテゴリ変数のダミー変数化}
+機械学習モデルは原則「数値」しか理解できません．
+「カテゴリ」列に入っている「家電」「書籍」「アパレル」といったカテゴリを示す文字列データは，そのままでは計算に使えません．
+
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figure/pandas/one-hot-encoding.pdf}
+    \caption{カテゴリ変数のダミー変数化の例．}
+    \label{fig:one-hot-encoding}
+\end{figure}
+一般にカテゴリを示すデータについては，図\ref{fig:one-hot-encoding}のように，カテゴリの数だけ新しい列（フラグ）を作り，該当する箇所に1，それ以外に0を入れる変換を行います．
+これを\strong{ダミー変数化（またはワンホットエンコーディング; one-hot encoding）}と呼びます．
+pandasでは\graybox{get\_dummies()}という関数でカテゴリ変数を数値に変換できます．
+コード\ref{code:pandas-dummies}は，商品に関するデータフレームの列「カテゴリ」のデータをダミー変数化するためのコード例です．
+
+\begin{figure}[tb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{python}
+
+    # 「カテゴリ」列をダミー変数化する
+    df_encoded = pd.get_dummies(df_products, columns=['カテゴリ'])
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{ダミー変数化のためのコード例}
+    \label{code:pandas-dummies}
+\end{figure}
+
+\subsection{数値のスケーリング}
+データの中に「価格（数百円〜数十万円）」と「在庫数（数個〜数百個）」のように，桁（スケール）が全く違う変数が混ざっていると，機械学習モデルは「桁が大きいデータの方が重要だ」と勘違いしてしまうことがあります．
+これを防ぐため，データのスケールを一定のルールで揃える「正規化」や「標準化」を行います．
+正規化および標準化の数学的操作は以下の通りです：
+\begin{itemize}
+    \item \strong{正規化（Min-Max scaling）：} データが0から1の範囲に収まるように元データを変換．
+    \begin{equation}
+        x' = \frac{x - x_{\min}}{x_{\max} - x_{\min}}
+        \label{eq:normalization}
+    \end{equation}
+    \item \strong{標準化（Z-score scaling）：} データの分布が平均を0，標準偏差を1になるように元データを変換．
+    \begin{equation}
+        x' = \frac{x - \mu}{\sigma}
+        \label{eq:standardization}
+    \end{equation}
+\end{itemize}
+
+これらの処理は直接計算することも可能ですが，機械学習ライブラリ\graybox{scikit-learn}の\graybox{MinMaxScaler}や\graybox{StandardScaler}を使うと，複数の列に対して効率的に適用できます．
+コード\ref{code:pandas-sklearn-scaling}は，商品に関するデータフレームの列「価格」「在庫数」の値を正規化および標準化するコード例です．
+
+\begin{figure}[tb]
+    \begin{minted}[gobble=1,
+        bgcolor=background,
+        fontsize=\small,
+        linenos=false,
+        xleftmargin=0em]{python}
+
+    from sklearn.preprocessing import MinMaxScaler, StandardScaler
+
+    # 正規化（MinMaxScaler）
+    scaler_minmax = MinMaxScaler()
+    df_normalized = scaler_minmax.fit_transform(
+        df_products[['価格', '在庫数']])
+
+    # 標準化（StandardScaler）
+    scaler_std = StandardScaler()
+    df_standardized = scaler_std.fit_transform(
+        df_products[['価格', '在庫数']])
+
+    \end{minted}
+    \captionsetup{name=コード}
+    \caption{scikit-learnを用いたスケーリング}
+    \label{code:pandas-sklearn-scaling}
+\end{figure}
+
+% ==============================================================
+\section{まとめ}
+% ==============================================================
+本章では，関係データベースのSQLとPythonのpandasを連携させ，データを機械学習モデルに投入可能な状態へと引き上げる「前処理」の基礎を学びました．
+
+関係データベースを正しく設計し，SQLで必要なデータを効率よく抽出し，pandasでモデル向けに加工する ——
+この一連の流れこそが，データ分析の実務そのものです．
+
+次章では，これまでに学んだすべての知識（正規化設計，SQL，pandas）を総動員して，実践的なデータベースの設計・分析課題に挑みます．
+
