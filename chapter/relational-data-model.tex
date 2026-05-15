@@ -70,7 +70,7 @@
 表\ref{tab:correct-table}は，ある小売店で取り扱っている商品のデータを関係データモデルによって表現したものです．
 この表では，各行は小売店で取り扱っている商品に対応し，各列には各商品に関するデータが記述されています．
 
-\begin{table}[h]
+\begin{table}[!htbp]
 \centering
 \caption{ある小売店の商品に関するデータを収めた関係「商品」}
 \label{tab:correct-table}
@@ -332,7 +332,7 @@ Excelなどで表データを扱う場合，表（つまり関係）が第1正�
 \end{itemize}
 など，関係スキーマ「商品」のドメイン制約に違反しているからです．
 
-\begin{table}[tb]
+\begin{table}[!htbp]
 \centering
 \caption{ドメイン制約に違反する関係「商品(*)」}
 \label{tab:incorrect-table}
@@ -367,7 +367,7 @@ P1000         & きのこの里       & 2百         & 2023/01/08   \\ \bottomru
 同様に，属性「大学email」も超キーとなります．
 なぜなら，通常，同じ大学emailを複数の学生に割り当てることはないからです．
 
-\begin{table}[tb]
+\begin{table}[!htbp]
 \centering
 \caption{関係「連絡先」}
 \label{tab:contact-relation}
@@ -416,7 +416,7 @@ S1000         & 北 千種        & 2           & kita@xxx.ac.jp     & 名古屋
 また，卒業後も成績証明書の発行などで利用する可能性もありますから，永続的なものと考えられます．
 これらを踏まえると，関係スキーマ「連絡先」においては属性「学生ID」を主キーとして選ぶのがよさそうです．
 
-\begin{table}[tb]
+\begin{table}[!htbp]
 \centering
 \caption{関係「履修」}
 \label{tab:course-completion-relation}
@@ -652,7 +652,7 @@ Q4で定義した関係スキーマ（ドメイン定義を含む）に対して
 \subsubsection{Q8. 主キー}
 表\ref{tab:membership-management}の「会員管理」において，想定される主キーは何でしょうか．
 
-\begin{table}[h]
+\begin{table}[!htbp]
 \centering
 \caption{関係「会員管理」}
 \begin{tabular}{@{}lllll@{}}
