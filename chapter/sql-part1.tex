@@ -23,7 +23,7 @@ SQLはプログラミング言語に比べて覚えることは少なく，問�
 もしあなたがデータ分析人材を目指しているのであれば，ソフトウェアを開発することはゴールではないでしょうから，高度なプログラミング能力を持つ必要はありません．
 しかし，大量のデータを活かすことが期待されている今日，関係データベースに納められた大量のデータを自由自在に扱うには，\strong{SQLの習得は必須}です．
 本章ではデータ分析の基本となる「読み出し（Read）」の基礎に絞って解説します．
-より複雑な読み出しやレコードの登録，更新などは\ref{chap:sql-part2}で解説します．
+より複雑な読み出しやレコードの登録，更新などは第\ref{chap:sql-part2}で解説します．
 
 
 \begin{notebox}{SQLの読み方}
@@ -44,7 +44,7 @@ SQLは関係データベースを操作する言語で，それが扱うデー�
 ところが，「実用」のSQLデータモデルと「理論」の関係データモデルでは，同様の概念が異なる用語で定義されていることがあります．
 以下，SQLと関係データモデルの用語の比較です．
 
-\begin{table}[tb]
+\begin{table}[!htbp]
     \centering
     \caption{SQLと関係データモデルの用語の比較}
     \begin{tabular}{ll}
@@ -102,7 +102,7 @@ DB Browser for SQLiteなどのSQLiteクライアントソフトを用いて，�
 ダウンロードしたデータベースには，1章で取り上げたような小売店ショッピングサイトに掲載された商品に関する情報が格納されています．
 具体的には，表\ref{tab:product-table}のように，「商品ID」「商品名」「カテゴリ」「メーカー」「価格」「在庫数」を列（属性）として持つテーブル「商品」が格納されています．
 以後，このテーブルが格納された関係データベースが手元にあると想定して，SQLの使い方を説明します．
-\begin{table}[tb]
+\begin{table}[!htbp]
     \centering
     \caption{テーブル「商品」}
     \scalebox{0.93}{
@@ -133,7 +133,7 @@ DB Browser for SQLiteなどのSQLiteクライアントソフトを用いて，�
 問い合わせのために記述するSQL文のことを\strong{クエリ（query）} と呼びます．
 
 SQLによる代表的なクエリは，コード\ref{code:first-sql}に記したような形式の\strong{SELECT文}です．
-\begin{figure}[tb]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -167,7 +167,7 @@ SQLによる代表的なクエリは，コード\ref{code:first-sql}に記した
 上記要求を英語に直してみると，SQL文は問い合わせ要求をできるだけ直感的に表現しようとしていることが見て取れます．
 
 コード\ref{code:first-sql}のクエリは単純な例に過ぎませんが，関係データベースからデータを引っ張ってくる問い合わせについては，コード\ref{code:sql-structure}のように必ず\graybox{SELECT}句から始まるクエリが用いられます．
-\begin{figure}[tb]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -205,7 +205,7 @@ SQLによる代表的なクエリは，コード\ref{code:first-sql}に記した
 例題として用いるテーブル「商品」には，列として「商品ID」「商品名」「カテゴリ」「メーカー」「価格」「在庫数」がありますが，用途によっては特定の列のデータのみ欲しい場合があります．
 そのようなケースで用いるのが射影です．
 例えば，テーブル「商品」から列「商品名」「メーカー」「価格」のデータのみを抽出するSQL文はコード\ref{code:sql-select}となります．
-\begin{figure}[tb]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -224,7 +224,7 @@ SQLによる代表的なクエリは，コード\ref{code:first-sql}に記した
 \end{figure}
 このSQL文を実行すると，表\ref{tb:sql-select}のように，\graybox{SELECT}句内で指定した「商品名」「メーカー」「価格」列のデータのみが抽出されます．
 
-\begin{table}[tb]
+\begin{table}[!htbp]
     \centering
     \caption{テーブル「商品」に対する射影の結果}
     \begin{tabular}{@{}lll@{}}
@@ -244,7 +244,7 @@ SQLによる代表的なクエリは，コード\ref{code:first-sql}に記した
 テーブル「商品」は合計で500件のレコードが格納されているため，表が縦に長くなり，PCの画面からはみ出してしまいます．
 SQL文の問い合わせで得られた結果のうち，先頭の$N$行だけを表示させたい時は，コード\ref{code:sql-select2}のようにLIMIT句を使うとよいでしょう．
 コード\ref{code:sql-select2}を実行すると，表\ref{tb:sql-select2}のように，先頭の5行だけが表示されます．
-\begin{figure}[tb]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -262,8 +262,8 @@ SQL文の問い合わせで得られた結果のうち，先頭の$N$行だけ�
     \caption{テーブル「商品」に対して射影を行い，その結果の先頭5件だけ表示するSQL文}
     \label{code:sql-select2}
 \end{figure}
-\begin{table}[tb]
-    \centering
+\begin{table}[!htbp]
+    %\centering
     \centering
     \caption{テーブル「商品」に対する射影の結果（先頭5件に限定）}
     \begin{tabular}{@{}lll@{}}
@@ -283,7 +283,7 @@ SQL文の問い合わせで得られた結果のうち，先頭の$N$行だけ�
 真面目に記述するなら\graybox{SELECT}句にすべての列名を列挙することになりますが，テーブルが持つ列の数が多い場合は大変です．
 このような場合，コード\ref{code:sql-select3}のように\graybox{SELECT}句に\strong{アスタリスク（*）}を使えばよいです\footnote{計算機科学の世界では，アスタリスク（*）は「なんでもあり（すべて）」を表す「ワイルドカード」と呼ばれる記号としてよく使われます．}．
 アスタリスクを用いると，表\ref{tb:sql-select3}のようにすべての列名を列挙するのと同等の結果が得られます．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -302,7 +302,7 @@ SQL文の問い合わせで得られた結果のうち，先頭の$N$行だけ�
     \label{code:sql-select3}
 \end{figure}
 
-\begin{table}[tb]
+\begin{table}[!htbp]
     \centering
     \caption{テーブル「商品」に対する射影の結果（すべての列について，先頭の5件のレコードを表示）}
     \scalebox{0.93}{
@@ -347,7 +347,7 @@ SQL文では改行や余分な空白は無視されます．
 \end{itemize}
 例えば，テーブル「商品」から列「価格」の値が500以上のレコードを抽出するSQL文はコード\ref{code:sql-where}のようになります．
 このSQL文を実行すると，表\ref{tab:sql-where}のような結果が得られます．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -366,7 +366,7 @@ SQL文では改行や余分な空白は無視されます．
     \caption{テーブル「商品」から価格が500以上のレコードを抽出するSQL文}
     \label{code:sql-where}
 \end{figure}
-\begin{table}[h]
+\begin{table}[!htbp]
     \centering
     \caption{テーブル「商品」から価格が500以上のレコードを抽出した結果}
     \scalebox{0.93}{
@@ -388,7 +388,7 @@ SQL文では改行や余分な空白は無視されます．
 比較したい列のデータ型が文字列の場合は，比較したい文字列を\strong{シングルクォーテーション（'）}で囲って指定します．
 コード\ref{code:sql-where2}は，テーブル「商品」から列「メーカー」の値が\graybox{Fファーム}のレコードを抽出するSQL文の例です．
 このSQL文を実行すると，表\ref{tab:sql-where2}のような結果が得られます．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -407,7 +407,7 @@ SQL文では改行や余分な空白は無視されます．
     \caption{テーブル「商品」から列「メーカー」の値が\graybox{Fファーム}のレコードを抽出するSQL文}
     \label{code:sql-where2}
 \end{figure}
-\begin{table}[h]
+\begin{table}[!htbp]
     \centering
     \caption{テーブル「商品」から列「メーカー」の値が\graybox{Fファーム}のレコードを抽出した結果}
     \scalebox{0.93}{
@@ -432,7 +432,7 @@ SQL文では改行や余分な空白は無視されます．
 なお，\%（パーセント）は0文字以上の任意の文字列を意味します．
 以下は，テーブル「商品」から列「商品名」の値に\graybox{チョコ}の文字を含むレコードのみを抽出するSQL文の例です．
 このSQL文を実行すると，表\ref{tab:sql-where3}のようなレコードが抽出されます．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -450,7 +450,7 @@ SQL文では改行や余分な空白は無視されます．
     \caption{テーブル「商品」から列「商品名」の値に「チョコ」を含むレコードを抽出するSQL文}
     \label{code:sql-where3}
 \end{figure}
-\begin{table}[h]
+\begin{table}[!htbp]
     \centering
     \caption{テーブル「商品」から列「商品名」の値に「チョコ」を含むレコードを抽出した結果}
     \scalebox{0.93}{
@@ -469,7 +469,7 @@ SQL文では改行や余分な空白は無視されます．
     \label{tab:sql-where3}
 \end{table}
 「チョコ」の前後にパーセント記号をつけることによって，商品名のどこかに「チョコ」という文字列が現れるレコードを絞り込んでいます．
-もし\graybox{LIKE}演算子の条件を\graybox{\%チョコ\%}ではなく\graybox{\%チョコ}にした場合，「無添加 チョコチップパン」のように文末がチョコで終わらない商品名のレコードはマッチしなくなります．
+もし\graybox{LIKE}演算子の条件を\graybox{\%チョコ\%}ではなく\graybox{\%チョコ}にした場合，「無添加 チョコチップパン」のように末尾が「チョコ」で終わらない商品名のレコードはマッチしなくなります．
 
 \begin{notebox}{SQLの処理順序}
     \graybox{SELECT}文による問い合わせが行われたとき，関係データベース管理システムは以下のステップで処理を行います．
@@ -491,7 +491,7 @@ SQL文では改行や余分な空白は無視されます．
 
 コード\ref{code:sql-where4}は，テーブル「商品」から列「メーカー」の値が\graybox{N製菓}でかつ列「価格」の値が\graybox{500}以上のレコードを抽出するSQL文の例です．
 このSQLを実行すると，表\ref{tab:sql-where4}のように，条件を満たすレコードが抽出され，その「商品名」「価格」「在庫数」の値が表示されます．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -510,7 +510,7 @@ SQL文では改行や余分な空白は無視されます．
     \caption{テーブル「商品」から列「メーカー」の値が\graybox{N製菓}でかつ列「価格」の値が\graybox{500}以上のレコードを抽出するSQL文（表示する列は「商品名」「価格」「在庫数」限定）}
     \label{code:sql-where4}
 \end{figure}
-\begin{table}[h]
+\begin{table}[!htbp]
     \centering
     \caption{テーブル「商品」から列「メーカー」の値が\graybox{N製菓}でかつ列「価格」の値が\graybox{500}以上のレコードを抽出し，列「商品名」「価格」「在庫数」の値を表示した結果}
     \scalebox{1.00}{
@@ -534,7 +534,7 @@ SQL文では改行や余分な空白は無視されます．
 \ref{chap:sql-vs-relational-data-model}節で述べたように，SQL文の実行結果には重複するレコードが含まれることがあります．
 例えば，テーブル「商品」の列「メーカー」に着目して，テーブル「商品」で取り扱っている商品のメーカーの一覧を抽出することを考えてみましょう．
 これまで説明してきた内容を踏まえると，コード\ref{code:sql-undistinct}のように列「メーカー」を射影するSQL文でメーカーの一覧を抽出できると考えた方がいるかもしれません．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -551,7 +551,7 @@ SQL文では改行や余分な空白は無視されます．
     \label{code:sql-undistinct}
 \end{figure}
 ところが，期待に反してコード\ref{code:sql-undistinct}のSQL文を実行すると，表\ref{tab:sql-undistinct}のように列「メーカー」の値が重複しているレコードが抽出されてしまいます．
-\begin{table}[h]
+\begin{table}[!htbp]
     \centering
     \caption{テーブル「商品」から列「メーカー」の値を抽出した結果}
     \scalebox{1.00}{
@@ -573,7 +573,7 @@ E食品 \\
 
 レコードの重複を除いた結果を出力したい場合は，\graybox{SELECT}の直後に\graybox{DISTINCT}を指定します．
 コード\ref{code:sql-undistinct}はコード\ref{code:sql-distinct}のように書き換えることで，重複を除いたレコード，つまりテーブル「商品」にある商品を取り扱っているメーカーの一覧を抽出することができます（結果は\ref{tab:sql-distinct}）．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -589,7 +589,7 @@ E食品 \\
     \caption{テーブル「商品」から列「メーカー」の値を重複を省いて抽出するSQL文}
     \label{code:sql-distinct}
 \end{figure}
-\begin{table}[h]
+\begin{table}[!htbp]
     \centering
     \caption{テーブル「商品」から列「メーカー」の値を重複を省いて抽出した結果}
     \scalebox{1.00}{
@@ -614,9 +614,9 @@ Q醤油 \\ \bottomrule
 データ分析では，大きいもの（小さいもの）順にデータを\strong{整列（ソート）}させたいケースが多々あります．
 そのようなケースで使用するのが\graybox{ORDER BY}句です．
 
-SQLでは，コード\ref{code:sql-orderby}のように\graybox{ORDER BY}の後に列名を指定することで，抽出したレコードを指定した列の値の小さいもの順（昇順） に並び替えることができます．
+SQLでは，コード\ref{code:sql-orderby}のように\graybox{ORDER BY}の後に列名を指定することで，抽出したレコードを指定した列の値の小さいもの順（昇順）に並び替えることができます．
 このSQL文を実行すると，表\ref{tab:sql-orderby}のように，テーブル「商品」から在庫数の少ない順にレコードが抽出されます．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -635,7 +635,7 @@ SQLでは，コード\ref{code:sql-orderby}のように\graybox{ORDER BY}の後�
     \caption{テーブル「商品」から在庫数の少ない順にレコードを上位5件抽出するSQL文}
     \label{code:sql-orderby}
 \end{figure}
-\begin{table}[h]
+\begin{table}[!htbp]
     \centering
     \caption{テーブル「商品」から在庫数の少ない順にレコードを抽出した結果（上位5件）}
     \scalebox{0.93}{
@@ -657,7 +657,7 @@ P157 & 辛口シチュー & レトルト & Dフード & 620 & 3 \\
 大きいもの順（降順, in descending order）でソートしたい場合は，\graybox{ORDER BY}で列名を指定する際，列名の後に\graybox{DESC}キーワードを付けます．
 コード\ref{code:sql-orderby2}は，テーブル「商品」から在庫数が多いもの順にレコードを抽出するSQL文の例です．
 このSQL文の実行結果は，表\ref{tab:sql-orderby2}のようになります．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -676,7 +676,7 @@ P157 & 辛口シチュー & レトルト & Dフード & 620 & 3 \\
     \caption{テーブル「商品」から在庫数の多い順にレコードを上位5件抽出するSQL文}
     \label{code:sql-orderby2}
 \end{figure}
-\begin{table}[h]
+\begin{table}[!htbp]
     \centering
     \caption{テーブル「商品」から在庫数の多い順にレコードを抽出した結果（上位5件）}
     \scalebox{0.93}{
@@ -713,7 +713,7 @@ SQLに実装されている代表的な集約関数は以下の通りです：
 例えば，テーブル「商品」から列「メーカー」の値が\graybox{L食品}のレコードだけに限定して，商品の「在庫数」の合計値を計算することを考えましょう．
 合計値を求める集約関数は\graybox{SUM}です．
 コード\ref{code:sql-sum}のように\graybox{SUM}関数の引数に「在庫数」を指定することで，「在庫数」の合計値を計算できます（結果は表\ref{tab:sql-sum}）．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -731,7 +731,7 @@ SQLに実装されている代表的な集約関数は以下の通りです：
     \caption{テーブル「商品」から列「メーカー」の値が\graybox{L食品}のレコードに限定して「在庫数」の合計値を計算するSQL文}
     \label{code:sql-sum}
 \end{figure}
-\begin{table}[h]
+\begin{table}[!htbp]
     \centering
     \caption{テーブル「商品」から列「メーカー」の値が\graybox{L食品}のレコードに限定して「在庫数」の合計値を計算した結果}
     \scalebox{0.93}{
@@ -747,7 +747,7 @@ SQLに実装されている代表的な集約関数は以下の通りです：
 
 \graybox{SELECT}句に複数の集約関数を指定することで，複数の集計処理を同時に行うこともできます．
 コード\ref{code:sql-multiple-aggregates}は，テーブル「商品」から列「メーカー」の値が\graybox{L食品}のレコードだけに限定して，商品の「在庫数」の合計値，平均値，最大値と最小値の差を同時に計算するSQL文の例です（結果は表\ref{tab:sql-multiple-aggregates}）．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -767,7 +767,7 @@ SQLに実装されている代表的な集約関数は以下の通りです：
     \caption{テーブル「商品」から列「メーカー」の値が\graybox{L食品}のレコードに限定して，「在庫数」の合計値，平均値，最大値と最小値の差を同時に計算するSQL文}
     \label{code:sql-multiple-aggregates}
 \end{figure}
-\begin{table}[h]
+\begin{table}[!htbp]
     \centering
     \caption{テーブル「商品」から列「メーカー」の値が\graybox{L食品}のレコードに限定して「在庫数」の合計値，平均値，最大値と最小値の差を同時に計算した結果}
     \scalebox{0.93}{
@@ -796,7 +796,7 @@ SQLに実装されている代表的な集約関数は以下の通りです：
 \graybox{COUNT}関数の引数には，すべての列を意味するアスタリスク（*）が用いられることが多いです．
 コード\ref{code:sql-count}は，テーブル「商品」に格納されたレコード数を調べるSQL文です（結果は表\ref{tab:sql-count}）．
 このSQL文は\graybox{SELECT * FROM 商品;}の実行結果の行数を数えていると考えればOKです．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -812,7 +812,7 @@ SQLに実装されている代表的な集約関数は以下の通りです：
     \caption{テーブル「商品」に格納されたレコード数を調べるSQL文}
     \label{code:sql-count}
 \end{figure}
-\begin{table}[h]
+\begin{table}[!htbp]
     \centering
     \caption{テーブル「商品」に格納されたレコード数を調べた結果}
     \scalebox{0.93}{
@@ -829,7 +829,7 @@ SQLに実装されている代表的な集約関数は以下の通りです：
 一方，コード\ref{code:sql-count2}のSQL文は結果だけ見るとコード\ref{code:sql-count}のSQL文と同じになりますが，振る舞いは少し異なります．
 \graybox{COUNT}(列名) は，指定した列の値が「NULL（空値）ではないレコード」の件数を数え上げます．
 要するに，\graybox{SELECT メーカー FROM 商品 WHERE メーカー IS NOT NULL;}\footnote{SQLではNULL値は特別な値なので，ある列の値がNULLであるかの判定には\graybox{IS NULL}や\graybox{IS NOT NULL}を使用します．\graybox{列名 = NULL}や\graybox{列名 != NULL}とは書きません．}の実行結果の行数を数えており，\graybox{SELECT COUNT(*) FROM 商品;}とは微妙に振るまいが異なることに注意してください．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -847,7 +847,7 @@ SQLに実装されている代表的な集約関数は以下の通りです：
 \end{figure}
 なお，コード\ref{code:sql-count2}の\graybox{COUNT(メーカー)}は，同じメーカー名が複数回登場した場合，それらも重複してカウントしてしまいます．
 テーブル「商品」に現れるメーカーの種類数を数えたい場合は，コード\ref{code:sql-distinct-count}のSQL文のように重複を除いて数え上げたい列名の前に\graybox{DISTINCT}を付けましょう（結果は表\ref{tab:sql-distinct-count}）．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -863,7 +863,7 @@ SQLに実装されている代表的な集約関数は以下の通りです：
     \caption{テーブル「商品」に格納された商品のメーカー数を重複を除いて調べるSQL文}
     \label{code:sql-distinct-count}
 \end{figure}
-\begin{table}[h]
+\begin{table}[!htbp]
     \centering
     \caption{テーブル「商品」に格納された商品のメーカー数を重複を除いて調べた結果}
     \scalebox{0.93}{
@@ -896,7 +896,7 @@ SQL文やその実行結果を分かりやすくするために，SQLにはテ�
 「\graybox{GROUP BY}句 + 列名」の形式で指定をすると，指定された列名について同じ値をもつレコードが1つのグループにまとめられた\strong{グループ表}が（ユーザには見えない形で）一時的に作成されます．
 例えば，テーブル「商品」に対して問い合わせを行うSQL文内で「\graybox{GROUP BY} メーカー」と書くと，図\ref{fig:groupby}のようなイメージのグループ表が一時的に作成されます（点線がグループを表す）．
 その後，まとめられたグループのそれぞれに対して\graybox{SELECT}句で指定された集約関数が適用されます．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=0.95\textwidth]{figure/sql-part1/groupby.pdf}
     \caption{GROUP BY句によってテーブル「商品」を列「メーカー」の値でグループ化したイメージ図}
@@ -906,7 +906,7 @@ SQL文やその実行結果を分かりやすくするために，SQLにはテ�
 コード\ref{code:sql-groupby}は，テーブル「商品」を用いて，列「メーカー」の値ごとに商品の「在庫数」の平均値を計算するSQL文です．
 このSQL文を実行すると，表\ref{tab:sql-groupby}のような結果が表示されます．
 メーカー名を表示させるために，\graybox{SELECT}句に列「メーカー」を指定していることに注意してください．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -925,7 +925,7 @@ SQL文やその実行結果を分かりやすくするために，SQLにはテ�
     \caption{テーブル「商品」を用いて，列「メーカー」の値でグループ化し，メーカーごとに商品の「在庫数」の平均値を計算するSQL文}
     \label{code:sql-groupby}
 \end{figure}
-\begin{table}[h]
+\begin{table}[!htbp]
     \centering
     \caption{テーブル「商品」を用いて，列「メーカー」の値でグループ化し，メーカーごとに商品の「在庫数」の平均値を計算した結果}
     \scalebox{0.93}{
@@ -951,7 +951,7 @@ Q醤油 & 246.3 \\
 コード\ref{code:sql-groupby-where}は，テーブル「商品」の中で列「価格」の値が\graybox{360}円以上の商品が何件あるか，それら商品の平均価格はいくらかについて，メーカーごとに集計するSQL文です．
 \graybox{WHERE}句を使うことで，集約対象を「価格が360円以上の商品レコード」に絞り込んだ後，グループ化と集約を行っていることに注意しましょう．
 このSQL文を実行すると，表\ref{tab:sql-groupby-where}のような結果が得られます．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -973,7 +973,7 @@ Q醤油 & 246.3 \\
     \caption{テーブル「商品」を用いて，「メーカー」ごとに列「価格」の値が\graybox{360}円以上の商品の数と平均価格を集計するSQL文}
     \label{code:sql-groupby-where}
 \end{figure}
-\begin{table}[h]
+\begin{table}[!htbp]
     \centering
     \caption{テーブル「商品」を用いて，「メーカー」ごとに列「価格」の値が\graybox{360}円以上の商品の数と平均価格を集計した結果}
     \scalebox{0.93}{
@@ -1001,7 +1001,7 @@ Q醤油 & 25 & 707.6 \\
 実行結果は表\ref{tab:sql-groupby-having}のようになります．
 \graybox{WHERE}句は集計前に行を絞り込み，\graybox{HAVING}句は集計後にグループを絞り込みます．
 \graybox{WHERE}句を用いた場合と\graybox{HAVING}句を用いた場合で挙動が異なることを意識しましょう．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -1023,7 +1023,7 @@ Q醤油 & 25 & 707.6 \\
     \caption{テーブル「商品」を用いて，「メーカー」ごとに取り扱っている全商品の数と商品の平均価格を集約した後，平均価格が\graybox{360}円以上のメーカーの情報だけを抽出するSQL文}
     \label{code:sql-groupby-having}
 \end{figure}
-\begin{table}[h]
+\begin{table}[!htbp]
     \centering
     \caption{テーブル「商品」を用いて，「メーカー」ごとに取り扱っている全商品の数と商品の平均価格を集約した後，平均価格が\graybox{360}円以上のメーカーの情報だけを抽出した結果}
     \scalebox{0.93}{
@@ -1068,14 +1068,14 @@ SQL文を書く際には，SQL文で書かれた内容がどのような順序�
 % ---------------------------------------
 
 本クイズでは，独立行政法人統計センターが公開している教育用標準データセット（SSDSE）の基本素材SSDSE-E\footnote{教育用標準データセット（SSDSE）: \url{https://www.nstac.go.jp/use/literacy/ssdse/\#SSDSE-E}}から，著者が抜粋・加工したデータを用います．
-加工済みのデータのファイル（\graybox{SSDSE.db}）はコチラのURL（\url{https://github.com/trycycle/database-textbook/raw/refs/heads/main/dataset/SSDSE.db}）よりダウンロードできます．
+加工済みのデータのファイル（\graybox{SSDSE.db}）はこちらのURL（\url{https://github.com/trycycle/database-textbook/raw/refs/heads/main/dataset/SSDSE.db}）よりダウンロードできます．
 
 ダウンロードしたファイル\graybox{SSDSE.db}はSQLite形式のデータベースファイルです．
 本章の冒頭で説明したDB Browser for SQLiteなどのツールを用いてこのファイルを開くと，データベース内のテーブルを参照することができます．
 
 \graybox{SSDSE.db}には複数のテーブルが格納されていますが，このクイズで用いるのはテーブル``population''です．
 表\ref{tab:population-table}の通り，テーブル``population''には，47ある各都道府県に関する総人口，小学校児童数，中学校生徒数，高等学校生徒数，大学学生数のデータが2021年度，2020年度分格納されています．
-\begin{table}[tb]
+\begin{table}[!htbp]
     \centering
     \caption{SSDSE-Eからクイズ用に著者が抜粋・加工したデータ: テーブル``population''の内容}
     \scalebox{0.73}{
