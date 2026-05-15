@@ -19,33 +19,33 @@
 \section{実体関連モデルの変換で失敗する例}
 正規化手法の説明に入る前に，実体関連モデルを変換した結果，望ましくない関係スキーマが得られてしまう例を見ておきましょう．
 
-\ref{chap:er-model}章の図\ref{fig:erd-relation2}では，あるショッピングサイトにおける商品に関する情報を実体関連モデルでモデル化しました．
+第\ref{chap:er-model}章の図\ref{fig:erd-relation2}では，あるショッピングサイトにおける商品に関する情報を実体関連モデルでモデル化しました．
 その際，実体型「商品」と実体型「メーカー」を作成し，これら2つの実体型を関連型「製造」で結ぶことによって，あるメーカーがある商品を製造したという事実を表現することにしました．
 
 ところで，商品とそのメーカーに関する情報を実体関連モデルで表現する際，わざわざメーカーを実体として扱わなくても，図\ref{fig:bad-entity}のように，実体型「商品」の属性に「メーカー名（企業名）」や「メーカーTEL」などを持たせることも考えられます．
 実際，初学者が作成する実体関連モデルには，このような表現がしばしば見受けられます．
-\figure[tb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.7\textwidth]{figure/normalization/bad-entity.pdf}
   \caption{メーカーに関する情報を属性として取り込んだ実体型「商品」}
   \label{fig:bad-entity}
-\endfigure
+\end{figure}
 
 図\ref{fig:bad-entity}の実体型「商品」を前章で学んだ方法で関係スキーマに変換すると，以下が得られます．
 \begin{align}
   \text{\textbf{商品}}(\underline{\text{商品ID}}, \text{商品名}, \text{価格}, \text{発売日}, \text{メーカー名}, \text{メーカーTEL})
 \end{align}
 このスキーマで作成したテーブル「商品」のレコード例を図\ref{fig:bad-product-table}に示します．
-\figure[htb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.99\textwidth]{figure/normalization/bad-product-table.pdf}
   \caption{望ましくないテーブル「商品」}
   \label{fig:bad-product-table}
-\endfigure
+\end{figure}
 うまくデータを管理できているように見えますが，メーカーごとに連絡先（TEL）が決まっているという事実を知っていれば，データの持ち方が冗長であることに気付きます．
 属性「商品ID」の値が\graybox{P002}と\graybox{P005}のレコードは，\graybox{Dフーズ}の属性「メーカーTEL」に関する値を重複して持ってしまっています．
 このようなテーブル設計では，例えば\graybox{Dフーズ}の連絡先電話番号が変更された場合，テーブル「商品」の中のすべてのレコードに対して属性「メーカーTEL」の値を修正する必要が生じます．
-図\ref{fig:bad-product-table}のテーブル「商品」は，\ref{chap:anomaly}章で説明したような異状が発生するような設計になっているのです．
+図\ref{fig:bad-product-table}のテーブル「商品」は，第\ref{chap:anomaly}章で説明したような異状が発生する設計になっているのです．
 冗長性を排除し，データを正しく矛盾なく管理するには，メーカーの詳細情報はテーブル「メーカー」に切り出して管理する必要があります．
 
 このように，実体関連モデルを変換するだけでは，望ましい関係スキーマが得られないことがあります．
@@ -54,7 +54,7 @@
 
 \section{情報無損失分解}\label{sec:lossless-decomposition}
 関係データベース内で異状が発生する理由について，改めて考えてみましょう．
-\ref{chap:anomaly}章では，データベースの異状の例として，山畑さんのショッピングサイトにおける注文管理システムを取り上げました．
+第\ref{chap:anomaly}章では，データベースの異状の例として，山畑さんのショッピングサイトにおける注文管理システムを取り上げました．
 この例では，関係スキーマ
 \begin{align}
 \text{\textbf{注文}}(\underline{\text{注文ID}}, \text{ユーザ}, \text{商品名}, \text{単価}, \text{数量})
@@ -67,16 +67,16 @@
 
 図\ref{fig:lossless-decomposition}は，図\ref{fig:update-anomaly}のテーブル「注文」を
 \begin{itemize}
-\item テーブル「注文履歴」（テーブル「注文」の 属性集合 \{注文ID, ユーザ, 商品名, 数量\} 上の射影）
-\item テーブル「商品」（テーブル「注文」の 属性集合 \{商品名, 単価\} 上の射影）
+\item テーブル「注文履歴」（テーブル「注文」の属性集合 \{注文ID, ユーザ, 商品名, 数量\} 上の射影）
+\item テーブル「商品」（テーブル「注文」の属性集合 \{商品名, 単価\} 上の射影）
 \end{itemize}
 に分解したものです．
-\figure[tb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.99\textwidth]{figure/normalization/lossless-decomposition.pdf}
   \caption{情報無損失分解の例}
   \label{fig:lossless-decomposition}
-\endfigure
+\end{figure}
 このようにテーブル「注文」を分解すれば，以下のように対応することで更新時異状は発生しなくなります．
 \begin{itemize}
 \item 新商品\graybox{たきのこの里山}を追加する場合，テーブル「商品」に\graybox{(たきのこの里山, 250)}というレコードを追加
@@ -107,7 +107,7 @@
 
 タプル（レコード）の重複が「許されない」射影とは，SQLでは図\ref{fig:valid-projection}のような操作にあたります．
 図\ref{fig:invalid-projection}の例とは違い，レコードの重複は取り除かれています．
-\ref{chap:sql-part1}章で説明したように，SQLでは問い合わせ結果におけるレコードの重複が許されてしまいます．
+第\ref{chap:sql-part1}章で説明したように，SQLでは問い合わせ結果におけるレコードの重複が許されてしまいます．
 レコードの重複がないSQL問い合わせを行うには，\graybox{DISTINCT}を指定しましょう．
 
 \begin{center} % 2つ目の画像も同様に修正
@@ -128,35 +128,35 @@
 \item 関係「注文2」（関係「注文」の属性集合 \{ユーザ, 商品名, 数量, 単価\} 上の射影）
 \end{itemize}
 に分解したものです．
-\figure[tb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.9\textwidth]{figure/normalization/lossy-decomposition.pdf}
   \caption{関係「注文」を属性「ユーザ」を軸に分解した例}
   \label{fig:lossy-decomposition}
-\endfigure
+\end{figure}
 
 これら2つの関係を属性「ユーザ」をもとに結合してみましょう．
 2つの関係において属性値が等しいレコードを結合すると，図\ref{fig:lossy-composition}のように元の関係「注文」とは異なる関係が得られます．
 元の関係「注文」にはなかったレコードが追加されてしまっているのです．
 関係「注文」から「注文1」と「注文2」への分解は情報の保存に失敗したため，分解前の情報を復元できなくなってしまいました．
-\figure[tb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=1.0\textwidth]{figure/normalization/lossy-composition.pdf}
   \caption{関係「注文1」と関係「注文2」を属性\graybox{ユーザ}をもとに結合した結果}
   \label{fig:lossy-composition}
-\endfigure
+\end{figure}
 
 図\ref{fig:lossless-decomposition}と図\ref{fig:lossy-decomposition}の2例を比較したとき，関係「注文」を関係「注文履歴」と「商品」に分解する例ではなぜ情報無損失分解に成功したのでしょうか．
 成功要因は，分解の軸となった属性「商品名」は，その値が決まれば対応する属性「単価」の値も一意に決まることにあります．
 一方，関係「注文」を関係「注文1」と「注文2」に分解する例が情報無損失分解に失敗した理由は，分解の軸となった属性「ユーザ」の値が決まっても，それに対応する属性「商品名」「単価」「数量」の値が一意に決まらないことにあります．
 
 これら例からわかるように，情報無損失分解を行うためには，分解の軸となる属性の値が決まればそれに対応する属性の値も一意に決まることが必要となります．
-\ref{chap:relational-data-model}章で説明したように，このような性質を\strong{関数従属性}と呼びます．
+第\ref{chap:relational-data-model}章で説明したように，このような性質を\strong{関数従属性}と呼びます．
 以降のセクションでは，関数従属性の概念を再導入した後，それに基づく関係スキーマの正規化手法について説明します．
 
 
 \subsection{関数従属性}\label{sec:functional-dependency-again}
-\ref{chap:relational-data-model}章で触れたように，\strong{関数従属性（functional dependency）}は「関係$R$においてその属性（あるいは属性集合）$X$の値が決まると属性（あるいは属性集合）$Y$の値も一意に決まる」という性質です\cite{Codd1970,Armstrong1974}．
+第\ref{chap:relational-data-model}章で触れたように，\strong{関数従属性（functional dependency）}は「関係$R$においてその属性（あるいは属性集合）$X$の値が決まると属性（あるいは属性集合）$Y$の値も一意に決まる」という性質です\cite{Codd1970,Armstrong1974}．
 関係$R$において属性$X$が属性$Y$に関数従属していることを
 \begin{equation}
   X \to Y
@@ -167,12 +167,12 @@
   \text{\textbf{連絡先}}(\underline{\text{学生ID}}, \text{名前}, \text{学年}, \text{郵便番号}, \text{自宅住所})
 \end{equation}
 という関係スキーマに従う，図\ref{fig:contact-table}のような関係「連絡先」を考えましょう．
-\figure[tb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.9\textwidth]{figure/normalization/contact-table.jpg}
   \caption{関係「連絡先」の例}
   \label{fig:contact-table}
-\endfigure
+\end{figure}
 関係「連絡先」上ではいくつかの関数従属性が考えられます．
 例えば，属性「学生ID」は関係「連絡先」の主キーであるため，
 \begin{equation}
@@ -198,7 +198,7 @@
 一般に，関数従属性として注目されるのは\strong{自明でない関数従属性}です．
 以下，断りなく「関数従属性」と記した場合は，自明でない関数従属性を意味します．
 
-\begin{figure}[tb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=1.0\textwidth]{figure/normalization/sale-history.jpg}
   \caption{関係「営業記録」の例}
@@ -226,7 +226,7 @@
 \subsection{FDダイアグラム}
 関係スキーマに定義された複数の関数従属性は，\strong{FDダイアグラム（FD diagram）}と呼ばれる図によって整理することができます．
 例えば，式\ref{eq:sale-history}の関係スキーマ「営業記録」に定義された関数従属性$FD_1$，$FD_2$，$FD_3$，$FD_4$（式\ref{eq:sale-history-FD1}から\ref{eq:sale-history-FD4}）は図\ref{fig:FD-diagram}のようなFDダイアグラムで図示することができます．
-\begin{figure}[htb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.90\textwidth]{figure/normalization/FD-diagram.pdf}
   \caption{関係スキーマ「営業記録」のFDダイアグラム}
@@ -248,15 +248,15 @@ FDダイアグラムでは，関係スキーマの各属性の集合は四角で
 また，正規化前と正規化後の関係で，保持する一貫性制約も等しくなることが望まれます．
 
 図\ref{fig:NF-hierarchy}が示すように，正規形にはいくつかの段階（レベル）があります．
-正規形は\ref{chap:relational-data-model}章で説明した第1正規形から始まり，第5正規形まであります．
+正規形は第\ref{chap:relational-data-model}章で説明した第1正規形から始まり，第5正規形まであります．
 関係スキーマの正規化は，関数従属性をはじめとするデータ従属性を考慮することで実現されます．
 本章では，関数従属性に着目して，第1正規形の関係スキーマから実用上重要とされるボイス・コッド正規形を得る手順を説明します．
-\figure[tb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.99\textwidth]{figure/normalization/NF-hierarchy.jpg}
   \caption{正規形の階層}
   \label{fig:NF-hierarchy}
-\endfigure
+\end{figure}
 
 
 \subsection{ボイス・コッド正規形}
@@ -272,7 +272,7 @@ FDダイアグラムでは，関係スキーマの各属性の集合は四角で
 関係スキーマ$\boldsymbol{R}$上で成立するあらゆる自明でない関数従属性$X \to Y$において，$X$が$\boldsymbol{R}$の超キーであるとき，$\boldsymbol{R}$はボイス・コッド正規形であるという．
 \end{mainbox}
 
-\ref{chap:relational-data-model}章では，
+第\ref{chap:relational-data-model}章では，
 \begin{itemize}
 \item 超キーとは，関係スキーマ$\boldsymbol{R}$における属性集合のうち，それらの属性値が決まればおのずと関係$R$のインスタンス中のタプルが唯一ひとつに決まる（タプルを一意に特定できる）もの
 \item 候補キーとは，超キーのうち最も小さい部分集合（つまり極小な集合）
@@ -295,12 +295,12 @@ $\boldsymbol{R_1}$上では
 \end{align}
 の2つの関数従属性が成立していますが，$\boldsymbol{R_1}$はボイス・コッド正規形ではありません．
 なぜなら，この関係スキーマにおいては属性集合\{ユーザ, 商品\}が（唯一の）候補キーになる一方，関数従属性$FD_4$の左辺は候補キー以外の属性（営業担当）から構成されており，ボイス・コッド正規形の定義に反するからです．
-\figure[tb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.7\textwidth]{figure/normalization/2NF.pdf}
   \caption{関係スキーマ$\boldsymbol{R_1}$に関するFDダイアグラム}
   \label{fig:2NF}
-\endfigure
+\end{figure}
 
 別の例を見てみましょう．
 以下の関係スキーマ$\boldsymbol{R_2}$は，関係スキーマ「営業記録」を分解して得られたものです．
@@ -317,12 +317,12 @@ $\boldsymbol{R_1}$上では
 \end{align}
 さて，関係スキーマ$\boldsymbol{R_2}$もボイス・コッド正規形ではありません．
 先ほどの$\boldsymbol{R_1}$と同様，関係スキーマ$\boldsymbol{R_2}$においては属性集合\{商品, ユーザ\}が（唯一の）候補キーになりますが，関数従属性$FD_2$および$FD_3$の左辺は候補キーの部分集合であり，超キーではないからです（候補キーでもない）．
-\figure[tb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.8\textwidth]{figure/normalization/1NF.pdf}
   \caption{関係スキーマ$\boldsymbol{R_2}$に関するFDダイアグラム}
   \label{fig:1NF}
-\endfigure
+\end{figure}
 
 もう1例見てみましょう．
 以下の関係スキーマ$\boldsymbol{R_3}$も，関係「営業記録」を適当に分解して得られたものです．
@@ -337,12 +337,12 @@ FD_1: \text{ユーザ, 商品} \to \text{営業担当}
 であり，$\boldsymbol{R_3}$のキーは属性集合\{商品, ユーザ\}です．
 さて，関係スキーマ$\boldsymbol{R_3}$はボイス・コッド正規形となっています．
 なぜなら，関数従属性$FD_1$の左辺は候補キーそのものだからです．
-\figure[tb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.55\textwidth]{figure/normalization/BCNF.pdf}
   \caption{関係スキーマ$\boldsymbol{R_3}$に関するFDダイアグラム}
   \label{fig:BCNF}
-\endfigure
+\end{figure}
 
 
 \subsection{関数従属性による情報無損失分解}\label{sec:FD-lossless-decomposition}
@@ -357,14 +357,14 @@ FD_1: \text{ユーザ, 商品} \to \text{営業担当}
 \end{itemize}
 \end{mainbox}
 
-\figure[h]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.7\textwidth]{figure/anomaly/order.pdf}
   \caption{あるショッピングサイトでの注文履歴を管理するテーブル「注文」（再掲）}
   \label{fig:order-again}
-\endfigure
+\end{figure}
 関数従属性による情報無損失分解について，具体例を見ながら考えてみましょう．
-図\ref{fig:order-again}は，\ref{chap:anomaly}章で用いた架空ショッピングサイトの注文履歴を扱う関係テーブル「注文」です．
+図\ref{fig:order-again}は，第\ref{chap:anomaly}章で用いた架空ショッピングサイトの注文履歴を扱う関係テーブル「注文」です．
 「注文」の関係スキーマは下記の通りです．
 \begin{equation}
   \text{\textbf{注文}}(\underline{\text{注文ID}}, \text{ユーザ}, \text{商品名}, \text{単価}, \text{数量})
@@ -415,12 +415,12 @@ FD_1: \text{ユーザ, 商品} \to \text{営業担当}
 
 FDダイアグラムの説明の例で用いた関係スキーマ「営業記録」のFDダイアグラムを使って， 式\ref{eq:sale-history}の関係スキーマ「営業記録」をボイス・コッド正規形になるまで分解してみましょう．
 図\ref{fig:decomposition-to-BCNF}は，FDダイアグラム上で関係スキーマが分解されていく様子を図示したものです．
-\figure[tb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.99\textwidth]{figure/normalization/decomposition-to-BCNF.pdf}
   \caption{関係スキーマ「営業記録」の分解過程}
   \label{fig:decomposition-to-BCNF}
-\endfigure
+\end{figure}
 図\ref{fig:decomposition-to-BCNF}では，関数従属性$FD_4$，$FD_2$，$FD_3$の順で情報無損失分解を行うことで，ボイス・コッド正規形の関係スキーマを導出しています．
 この例では，最終的に関係スキーマ「営業記録」から下記4つのボイス・コッド正規形の関係スキーマが導出されます（関係スキーマを構成する属性のみ記載）．
 \begin{align}
@@ -437,12 +437,12 @@ FDダイアグラムの説明の例で用いた関係スキーマ「営業記録
 関係「営業記録」の例では，問題なくボイス・コッド正規形を導出できました．
 しかし現実的には，\strong{関数従属性を保持しながら}ボイス・コッド正規形まで情報無損失分解できないケースがしばしばあります．
 
-\figure[tb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.8\textwidth]{figure/normalization/key-destruction.pdf}
   \caption{$FD_5$が追加された関係スキーマ「営業記録」のFDダイアグラム}
   \label{fig:key-destruction}
-\endfigure
+\end{figure}
 
 図\ref{fig:key-destruction}は，先の例の関係スキーマ「営業記録」に関数従属性
 \begin{equation*}
@@ -453,15 +453,15 @@ $FD_5$は営業担当者ごとに担当する商品が決まっていること�
 
 このFDダイアグラムを用いて，関係スキーマ「営業記録」を分解してみましょう．
 図\ref{fig:decomposition-to-3NF}のように，関数従属性$FD_4$，$FD_2$，$FD_3$の順で分解していきます．
-\figure[tb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.99\textwidth]{figure/normalization/decomposition-to-3NF.pdf}
   \caption{$FD_5$が追加された関係スキーマ「営業記録」の分解過程}
   \label{fig:decomposition-to-3NF}
-\endfigure
+\end{figure}
 すると，最終的には下記関係スキーマが得られます．
 \begin{align}
-  &\boldsymbol{R_{10}}(\underline{\text{営業担当}},\text{営業成績}) \\
+  &\boldsymbol{R_{10}}(\underline{\text{営業担当}}, \text{営業成績}) \\
   &\boldsymbol{R_{11}}(\underline{\text{ユーザ}}, \text{連絡先}) \\
   &\boldsymbol{R_{12}}(\underline{\text{商品}}, \text{メーカー}) \\
   &\boldsymbol{R_{13}}(\underline{\text{ユーザ}, \text{商品}}, \text{営業担当})
@@ -477,14 +477,14 @@ $FD_5$は営業担当者ごとに担当する商品が決まっていること�
 そのため，関係スキーマ$\boldsymbol{R_{13}}$は惜しくもボイス・コッド正規形になっていないのです．
 
 図\ref{fig:key-destructive-decomposition}のように，関係スキーマ$\boldsymbol{R_{13}}$を関数従属性$FD_5$で分解することも可能です．
-\figure[tb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.99\textwidth]{figure/normalization/key-destructive-decomposition.pdf}
   \caption{関係スキーマ$\boldsymbol{R_{13}}$の分解}
   \label{fig:key-destructive-decomposition}
-\endfigure
+\end{figure}
 この分解によって，以下の2つの関係スキーマが得られます．
-ここでは，正確性を期すために，関係スキーマが持つ属性集合と関数従属性の両方を記載しています（\ref{subsec:relation}節参照）．
+ここでは，正確性を期すために，関係スキーマが持つ属性集合と関数従属性の両方を記載しています（第\ref{subsec:relation}節参照）．
 \begin{align}
   &(\boldsymbol{R_{14}}(\text{営業担当}, \text{商品}), \{\text{営業担当} \to \text{商品}\}) \\
   &(\boldsymbol{R_{15}}(\text{ユーザ}, \text{営業担当}), \{\})
@@ -506,12 +506,12 @@ $FD_5$は営業担当者ごとに担当する商品が決まっていること�
 2つ目がボイス・コッド正規形の要件を満たさない場合に対応するための条件です．
 定義上，ボイス・コッド正規形はすべて第3正規形となります．
 
-\figure[htb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.55\textwidth]{figure/normalization/3NF.pdf}
   \caption{第3正規形になっている関係スキーマ$\boldsymbol{R_{13}}$のFDダイアグラム}
   \label{fig:3NF}
-\endfigure
+\end{figure}
 図\ref{fig:3NF}における関係スキーマ$\boldsymbol{R_{13}}$は
 \begin{itemize}
 \item 候補キー\{商品, ユーザ\}を左辺とする関数従属性$FD_1$
@@ -521,17 +521,17 @@ $FD_5$は営業担当者ごとに担当する商品が決まっていること�
 $FD_1$は第3正規形の条件の1つ目を満たしており，$FD_5$は第3正規形の条件の2つ目を満たしています．
 そのため，関係スキーマ$\boldsymbol{R_{13}}$は第3正規形となります．
 
-第3正規形もボイス・コッド正規形も候補キーに関する関数従属性を保持する正規形ですが， 第3正規形はボイス・コッド正規形の条件に加え，右辺が候補キーの要素となっている場合の関数従属性も許容する，やや緩い正規形です．．
+第3正規形もボイス・コッド正規形も候補キーに関する関数従属性を保持する正規形ですが， 第3正規形はボイス・コッド正規形の条件に加え，右辺が候補キーの要素となっている場合の関数従属性も許容する，やや緩い正規形です．
 それに対して，ボイス・コッド正規形は候補キーとその上位集合が関数従属性の左辺に現れることのみを条件とした少し厳しいものになっています．
 
 
 \subsection{望ましい関係スキーマを得る手順のまとめ}
-\figure[tb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.9\textwidth]{figure/normalization/normalization-flow.jpg}
   \caption{正規化の流れ}
   \label{fig:normalization-flow}
-\endfigure
+\end{figure}
 図\ref{fig:normalization-flow}は，概念モデリングからはじめて第3正規形もしくはボイス・コッド正規形を得るための手順をまとめたものです．
 本書では実体関連図を作成した後，それを関係スキーマに機械的に変換し，正規化が不十分なものについてはFDダイアグラムを用いて情報無損失分解を行う流れで，正規化された関係スキーマを導出する方法を解説しました．
 
@@ -542,7 +542,7 @@ $FD_1$は第3正規形の条件の1つ目を満たしており，$FD_5$は第3�
 一方，実体関連図を作成しなくても，データベースで扱うことが想定される項目が手元に得られているのであれば，属性間に成立する関数従属性を考慮することで，第3正規形もしくはボイス・コッド正規形を満たす関係スキーマを設計することも可能です．
 例えば，長年現場で使われてきた何十列もある巨大なExcelシートや紙の伝票などをもとに，関係スキーマを設計するような場合です．
 ただし，関数従属性に基づく正規化手法だけでスキーマ設計を行うと，設計が機械的な作業になりがちで，関係テーブルが存在する意味や文脈を十分に考慮できない可能性があります．
-両者のメリット，デメリットを考慮すると，実体関連図とFDダイアグラムを併用して関係スキーマを導出する方法をオススメします．
+両者のメリット，デメリットを考慮すると，実体関連図とFDダイアグラムを併用して関係スキーマを導出する方法をおすすめします．
 
 関係データモデルの正規化レベルとしては第1正規形から第5正規形まで定義されていますが，実用的には第3正規形やボイス・コッド正規形までの正規化で十分と言われています．
 しかしながら，どの程度のレベルまで正規化を行うかは，想定しているサービスやアプリケーションに依存します．
@@ -604,18 +604,18 @@ $R$から第3正規形もしくはボイス・コッド正規形を導出して�
 また，分解の過程で得られる関係スキーマに正規化レベルを付与してください（例：第1正規形）．
 
 
-\subsection*{Q4: 関数従属性にもとづく正規化3}
-あるスポーツ団体では，団体に属する選手やチームに関する情報を管理する関係データベースを設計しようとしています．
-スタート地点として，関係スキーマ$\boldsymbol{R}$と関数従属性の集合が以下のように与えられています．
-\begin{equation}
-\boldsymbol{R}(\underline{選手, 年度}, 出身校, チーム, 監督, チーム創立年) \nonumber
-\end{equation}
-\begin{align}
-&FD_1: 選手 \to 出身校 \nonumber \\
-&FD_2: チーム \to チーム創立年 \nonumber \\
-&FD_3: チーム, 年度 \to 監督 \nonumber \\
-&FD_4: 選手, 年度 \to チーム \nonumber
-\end{align}
+% \subsection*{Q4: 関数従属性にもとづく正規化3}
+% あるスポーツ団体では，団体に属する選手やチームに関する情報を管理する関係データベースを設計しようとしています．
+% スタート地点として，関係スキーマ$\boldsymbol{R}$と関数従属性の集合が以下のように与えられています．
+% \begin{equation}
+% \boldsymbol{R}(\underline{選手, 年度}, 出身校, チーム, 監督, チーム創立年) \nonumber
+% \end{equation}
+% \begin{align}
+% &FD_1: 選手 \to 出身校 \nonumber \\
+% &FD_2: チーム \to チーム創立年 \nonumber \\
+% &FD_3: チーム, 年度 \to 監督 \nonumber \\
+% &FD_4: 選手, 年度 \to チーム \nonumber
+% \end{align}
 
-関数従属性$FD_1$，$FD_2$，$FD_3$，$FD_4$を用いて，関係スキーマ$\boldsymbol{R}$から第3正規形もしくはボイス・コッド正規形を導出してください．
-また，分解の過程で得られる関係スキーマに正規化レベルを付与してください（例：第1正規形）．
+% 関数従属性$FD_1$，$FD_2$，$FD_3$，$FD_4$を用いて，関係スキーマ$\boldsymbol{R}$から第3正規形もしくはボイス・コッド正規形を導出してください．
+% また，分解の過程で得られる関係スキーマに正規化レベルを付与してください（例：第1正規形）．

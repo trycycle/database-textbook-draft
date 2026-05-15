@@ -530,7 +530,7 @@ SQL文では改行や余分な空白は無視されます．
 \end{tipbox}
 
 \section{重複の除外}
-\ref{chap:sql-vs-relational-data-model}節で述べたように，SQL文の実行結果には重複するレコードが含まれることがあります．
+第\ref{chap:sql-vs-relational-data-model}節で述べたように，SQL文の実行結果には重複するレコードが含まれることがあります．
 例えば，テーブル「商品」の列「メーカー」に着目して，テーブル「商品」で取り扱っている商品のメーカーの一覧を抽出することを考えてみましょう．
 これまで説明してきた内容を踏まえると，コード\ref{code:sql-undistinct}のように列「メーカー」を射影するSQL文でメーカーの一覧を抽出できると考えた方がいるかもしれません．
 \begin{figure}[!htbp]

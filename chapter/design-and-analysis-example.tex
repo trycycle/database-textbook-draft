@@ -22,7 +22,7 @@
 しかし，既存の学内掲示板やSNSでのやり取りでは管理に限界があり，専用のフリマアプリを立ち上げたいとのことだった．
 
 さらに彼は，単なる売買アプリにとどまらず，ゆくゆくは蓄積したデータを使って「どんな商品が売れやすいのか」「いくらで出品するのが適正か」をサジェストするAI機能も組み込みたいと熱く語った．しかし，
-いざ開発を始めようとしたものの，アプリの裏側を支えるデータベースの設計，特に多様な商品をどう管理すればよいのかに頭を悩ませており，実績のある山畑さんに助けを求めてきたのだった．
+いざ開発を始めようとすると，アプリの裏側を支えるデータベースの設計，特に多様な商品をどう管理すればよいのかに頭を悩ませており，実績のある山畑さんに助けを求めてきたのだった．
 
 データベースの設計と分析も生業にしつつある山畑さん．
 後輩の熱意と，データ分析のやりがいがありそうな要件に惹かれ，データベース設計の依頼を二つ返事で引き受けたのだった．
@@ -45,7 +45,7 @@
 
 \section{実体関連図の作成}
 ヒアリングの結果をもとに，実体関連図を作成してみましょう．
-実体関連図の作成にあたって，まずは\ref{sec:what-is-er-model}節のコラムで触れた「言語分析に基づく実体関連モデルの抽出法」を使って実体型，関連型，それらの属性の候補を洗い出してみます．
+実体関連図の作成にあたって，まずは第\ref{sec:what-is-er-model}節のコラムで触れた「言語分析に基づく実体関連モデルの抽出法」を使って実体型，関連型，それらの属性の候補を洗い出してみます．
 
 ヒアリングの文章から，システムで管理すべきデータに関わる名詞を抽出すると，「ユーザ」「ユーザID」「年齢」「性別」「メールアドレス」「出品者」「購入者」「商品」「商品ID」「価格」「（商品の）状態」「説明文」「大カテゴリ」「小カテゴリ」「配送方法」「基本送料」「送料負担（の有無）」「ISBN」「出版社」「著者」「サイズ」「ブランド」「保証期間」「型番」「いいね」「取引」「成立」「取引ID」「レビュー」「評価スコア」などが挙げられます．
 
@@ -54,7 +54,7 @@
 アプリでは，すべての商品に共通する属性（価格や状態など）に加え，書籍ならISBN，服ならサイズ，家電なら保証期間といった特有の属性が存在します．
 これらを一つの実体型にまとめると，多くの属性値が空欄（NULL）になってしまいます．
 
-そこで，\ref{sec:inheritance}節で説明した汎化・継承の概念を用いましょう．
+そこで，第\ref{sec:inheritance}節で説明した汎化・継承の概念を用いましょう．
 共通の属性を持つ\strong{上位実体型として「商品」を定義し，その下位実体型として各カテゴリ特有の属性を持つ「書籍」「アパレル」「家電」を定義}するのが効果的です．
 
 一方，「ユーザ」についてはどうでしょうか．
@@ -91,7 +91,7 @@
 \end{itemize}
 
 以上を踏まえて作成した実体関連図は図\ref{fig:fleamarket-er-diagram}のようになります．
-\begin{figure}[htbp]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=0.99\textwidth]{figure/design-and-analysis-example/fleamarket-er-diagram.drawio.pdf}
     \caption{フリマアプリのデータ管理を行うための実体関連図}
@@ -100,7 +100,7 @@
 
 
 \section{実体関連図から関係スキーマへの変換}
-次に\ref{sec:erd-to-relational-model}節で説明した方法を用いて，実体関連モデルを関係データベースで扱うための関係スキーマ（テーブルの定義）へと変換していきます．
+次に第\ref{sec:erd-to-relational-model}節で説明した方法を用いて，実体関連モデルを関係データベースで扱うための関係スキーマ（テーブルの定義）へと変換していきます．
 
 まず，汎化・継承を用いた実体型の変換です．
 属性の違いを明確に分離し，データの冗長性を防ぐため，別々の関係スキーマに変換するアプローチを採用します．
@@ -137,7 +137,7 @@
 ここで，変換された関係スキーマの「主キー」に注目してみましょう．
 
 関係スキーマ「商品」と「出品」は，どちらも同じ主キー（商品ID）を持っています．
-また，関係スキーマ「取引」と「成立」は同じ主キーを（取引ID），関係スキーマ「レビュー」と「評価」は同じ主キー（レビューID）をそれぞれ持っています．
+また，関係スキーマ「取引」と「成立」は同じ主キー（取引ID）を，関係スキーマ「レビュー」と「評価」は同じ主キー（レビューID）をそれぞれ持っています．
 主キーが同じということは，それらのレコードが1対1で対応していることを意味します．
 そのため，同じ主キーを持つ関係スキーマの属性を1つの関係スキーマに統合（包含）してしまったほうが，実務的には管理コストが下げられますし，テーブルの結合頻度も小さくできます\footnote{テーブルを使う頻度とパフォーマンスを考慮して，実用的な観点からテーブル「商品」と「出品」を統合した方がよいと判断しましたが，概念モデルの観点からは2つのテーブルは分けておいたほうが意味的な一貫性を維持できます．}．
 
@@ -156,7 +156,7 @@
 
 
 \section{正規化理論に基づく関係スキーマの修正}
-作成した関係スキーマを用いることでデータベースから冗長性を排除できるか，更新時異状が発生しないか，\ref{chap:normalization}章で学んだ正規化理論の観点から確認しましょう．
+作成した関係スキーマを用いることでデータベースから冗長性を排除できるか，更新時異状が発生しないか，第\ref{chap:normalization}章で学んだ正規化理論の観点から確認しましょう．
 具体的には，関数従属性に注目して，関係スキーマがボイス・コッド正規形もしくは第3正規形を満たしているかチェックします．
 
 ここで，関係スキーマ「商品」に注目してみましょう．
@@ -179,7 +179,7 @@
 仮に先に設計した関係スキーマに従ってデータベースを設計，運用した場合，配送方法が設定されているすべての商品のレコードを探し出し，一つ残らず属性「基本送料」の値を更新しなければなりません．
 もし更新漏れがあると，同じ配送方法なのに商品によって送料が異なるという更新時異状が発生してしまいます．
 
-このような異状を防ぐため，\ref{sec:FD-lossless-decomposition}節で解説した情報無損失分解の定理に従い，関数従属性の原因（小カテゴリ，配送方法）と結果（大カテゴリ，基本送料，送料負担）のセットからなる関係スキーマと，元のスキーマから結果の属性だけを切り離した関係スキーマに分解します．
+このような異状を防ぐため，第\ref{sec:FD-lossless-decomposition}節で解説した情報無損失分解の定理に従い，関数従属性の原因（小カテゴリ，配送方法）と結果（大カテゴリ，基本送料，送料負担）のセットからなる関係スキーマと，元のスキーマから結果の属性だけを切り離した関係スキーマに分解します．
 具体的には，以下のように関係スキーマ「商品」から属性「小カテゴリ」および属性「配送方法」をそれぞれ主キーとする新しい関係スキーマを切り出します．
 \begin{align}
 &\textbf{商品}(\underline{\text{商品ID}}, \text{価格}, \text{状態}, \text{説明文}, \text{小カテゴリ}, \text{配送方法}, \text{出品者\_ユーザID}) \\
@@ -221,7 +221,7 @@
 
 \section{SQLによる問い合わせの例}
 ここでは，設計した関係スキーマに基づき構築した関係データベースを用いて，実際の問い合わせ例を確認します．
-コチラのURL（\url{https://github.com/trycycle/database-textbook/raw/refs/heads/main/dataset/fleamarket.db}）から\graybox{fleamarket.db}という名前のSQLiteファイルをダウンロードし，SQLiteのクライアントツールなどで開いてみてください．
+こちらのURL（\url{https://github.com/trycycle/database-textbook/raw/refs/heads/main/dataset/fleamarket.db}）から\graybox{fleamarket.db}という名前のSQLiteファイルをダウンロードし，SQLiteのクライアントツールなどで開いてみてください．
 ダウンロードしたSQLiteファイルには，山畑さんの後輩が立ち上げたフリマアプリの背後にある関係データベースの全データが納められています．
 テーブルの構造は，前節で設計した関係スキーマに完全に従っています．
 それでは，山畑さんの後輩からの要望をもとに，データ分析やサービス運営で登場しそうなSQLの記述例を見ていきましょう．
@@ -231,8 +231,9 @@
 抽出結果は，出品者に「値下げしてみませんか？」というプッシュ通知を送るためのリストアップなどに使える可能性があります．
 
 抽出用のSQLはコード\ref{code:unsold-item-extraction-sql}のようになります．
-\ref{sec:outer-join}節で学んだ\graybox{LEFT OUTER JOIN}を活用し，テーブル「商品」のレコードにテーブル「取引」を結合しつつ，取引の記録が存在しない（\graybox{取引.取引ID IS NULL}）ものだけを\graybox{WHERE}句で絞り込んでいます．
-\begin{figure}[htb]
+第\ref{sec:outer-join}節で学んだ\graybox{LEFT OUTER JOIN}を活用し，テーブル「商品」のレコードにテーブル「取引」を結合しつつ，取引の記録が存在しない（\graybox{取引.取引ID IS NULL}）ものだけを\graybox{WHERE}句で絞り込んでいます．
+SQLの実行結果は表\ref{tab:unsold-item-extraction-sql-results}のようになります．
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -255,6 +256,26 @@
     \label{code:unsold-item-extraction-sql}
 \end{figure}
 
+\begin{table}[!htbp]
+    \centering
+    \caption{売れ残っている商品を抽出するSQL文の問い合わせ結果}
+    \scalebox{0.93}{
+    \begin{tabular}{lll}
+    \toprule
+    \textbf{商品ID} & \textbf{出品者\_ユーザID} & \textbf{価格} \\
+    \midrule
+P00008	& U01401	& 1980 \\
+P00011	& U01382	& 780 \\
+P00023	& U02172	& 2110 \\
+P00024	& U02706	& 3480 \\
+P00027	& U02712	& 480 \\
+    $\vdots$ & $\vdots$ & $\vdots$ \\
+ \bottomrule
+    \end{tabular}
+    }
+    \label{tab:unsold-item-extraction-sql-results}
+\end{table}
+
 
 \subsection{出品者の平均評価の算出（集約計算の応用）}
 次に，フリマアプリの信頼性を担う重要な指標である「出品者の平均評価スコア」を計算します．
@@ -263,7 +284,8 @@
 抽出するSQLはコード\ref{code:seller-evaluation-sql}のようになります．
 「商品」「取引」「レビュー」の3つのテーブルを内部結合（\graybox{JOIN}）し，出品者のIDごとに\graybox{GROUP BY}でグループ化して，\graybox{AVG}関数でスコアの平均値を算出しています．
 複数のテーブルをまたいだ実践的な集計処理です．
-\begin{figure}[htb]
+このSQL文を実行すると，表\ref{tab:seller-evaluation-sql-results}のように，出品者ごとの平均評価スコアが算出されます．
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -287,6 +309,26 @@
     \label{code:seller-evaluation-sql}
 \end{figure}
 
+\begin{table}[!htbp]
+    \centering
+    \caption{出品者ごとの平均評価スコアを算出するSQL文の問い合わせ結果}
+    \scalebox{0.93}{
+    \begin{tabular}{ll}
+    \toprule
+    \textbf{出品者\_ユーザID} & \textbf{平均評価スコア} \\
+    \midrule
+U00001	& 3.67 \\
+U00002	& 5.0 \\
+U00004	& 3.0 \\
+U00005	& 2.5 \\
+U00006	& 4.5 \\
+    $\vdots$ & $\vdots$  \\
+ \bottomrule
+    \end{tabular}
+    }
+    \label{tab:seller-evaluation-sql-results}
+\end{table}
+
 
 \subsection{予測モデル構築のためのデータ抽出}\label{sec:data-extraction}
 最後に，後輩の要望の目玉であった「商品の売れやすさを予測するAI」を作るためのデータセットを抽出します．
@@ -295,13 +337,14 @@
 ここで注意しなければならないのが，複数のテーブルの結合による「行の増殖」です．
 もしテーブル「商品」に対して「レビュー」のテーブルと「いいね」のテーブルを単純に結合（\graybox{JOIN}）してしまうと，1つの商品に複数の「いいね」が存在した場合，掛け算でレコード数が増殖し，正しい集計ができなくなってしまいます．
 
-これを防ぐために，\ref{sec:subquery}節で学んだ副問い合わせ（\graybox{WITH}句）を用いて，「出品者ごとの平均評価」と「商品ごとのいいね数」をそれぞれ別々に事前集計しておきます．
+これを防ぐために，第\ref{sec:subquery}節で学んだ副問い合わせ（\graybox{WITH}句）を用いて，「出品者ごとの平均評価」と「商品ごとのいいね数」をそれぞれ別々に事前集計しておきます．
 
 抽出を行うSQLはコード\ref{code:machine-learning-dataset-sql}のようになります．
+また，問い合わせ結果は表\ref{tab:machine-learning-dataset-sql-results}のようになります．
 なお，まだ評価がない出品者のスコアや「いいね」が1件もついていない商品のいいね数，まだ売れていない商品の取引IDなどは，結合時に値が存在しない（\graybox{NULL}）状態として抽出されます．
 また，商品の説明文もそのままの文字列データとして抽出しています．
 欠損値（\graybox{NULL}）の穴埋めやフラグ化，説明文の文字数（長さ）への変換といった細かなデータ加工は，後続のPython側で行うため，ここではまず必要なデータを過不足なく結合して引っ張ってくることに専念しましょう．
-\begin{figure}[p]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -336,7 +379,7 @@
         カテゴリマスタ.大カテゴリ,
         カテゴリマスタ.小カテゴリ,
         配送方法マスタ.配送方法,
-        出品者評価.平均評価スコア AS 出品者平均評価スコア,
+        出品者評価.平均評価スコア AS 出品者スコア,
         商品いいね数.いいね数,
         取引.取引ID
     FROM
@@ -353,6 +396,26 @@
     \label{code:machine-learning-dataset-sql}
 \end{figure}
 
+\begin{table}[!htbp]
+    \centering
+    \caption{機械学習向けの特徴量データセットを抽出するSQL文の問い合わせ結果}
+    \scalebox{0.57}{
+    \begin{tabular}{llllllllll}
+    \toprule
+    \textbf{商品ID} & \textbf{価格} & \textbf{状態} & \textbf{説明文} & \textbf{大カテゴリ} & \textbf{小カテゴリ} & \textbf{配送方法} & \textbf{出品者スコア} & \textbf{いいね数} & \textbf{取引ID} \\
+    \midrule
+P00001	& 560 & 傷や汚れあり & .... & 書籍・エンタメ & 小説・文学 & 宅急便 & 4.5 & 13 & T00001 \\
+P00002	& 330 & 傷や汚れあり & .... & 書籍・エンタメ & 小説・文学 & ポスト投函 & 4.0 & 22 & T00002 \\
+P00003	& 2720 & 美品 & .... & スポーツ・レジャー & トレーニング用品 & ポスト投函 & 4.8 & 22 & T00003 \\
+P00004	& 300 & 傷や汚れあり & .... & ファッション & レディース & 宅急便 & 4.25 & 6 & T00004 \\
+P00005	& 2400 & 美品 & .... & 書籍・エンタメ & 専門書 & ポスト投函 & 4.0 & 18 & T00005 \\
+    $\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ \\
+ \bottomrule
+    \end{tabular}
+    }
+    \label{tab:machine-learning-dataset-sql-results}
+\end{table}
+
 
 \section{SQLで抽出したデータを機械学習に活かす}
 % 山畑さんの後輩からは，フリマアプリの将来展望として「商品の売れやすさを予測」が挙げられていました．
@@ -368,7 +431,7 @@
 % 後ほど用いるScikit-Learn\footnote{Scikit-Learn: \url{https://scikit-learn.org/stable/}}はその一つです．
 % ただし，そのような便利ライブラリがあったとしても，すぐに機械学習を始めることはできません．
 % 機械学習の本質は「数学的な計算」であるため，図\ref{fig:to-numerical-data}のように，機械学習の適用対象となるあらゆるデータは数値のあつまり\footnote{正確に言うと，ベクトルや行列，テンソルが入力となる．}に事前に変換しておく必要があります．
-% \begin{figure}[htb]
+% \begin{figure}[!htbp]
 %     \centering
 %     \includegraphics[width=0.75\textwidth]{figure/design-and-analysis-example/to-numerical-data.jpg}
 %     \caption{機械学習のための数値データ変換．}
@@ -385,7 +448,7 @@
 
 % お手元のPCにPythonやpandas，Scikit-Learnがインストールされていない方は，事前にインストールしておいてください．
 % なお，Pythonがインストール済みの方は，Windows PowershellやMacのTerminalアプリなどの上で以下のコマンドでpandas，Scikit-Learnを簡単にインストールできます．
-% \begin{figure}[htb]
+% \begin{figure}[!htbp]
 %     \begin{minted}[gobble=1,
 %         bgcolor=background,
 %         fontsize=\small,
@@ -404,22 +467,23 @@
 本節では，前節で設計した関係データベースからSQLで抽出したデータが，どのような流れで機械学習モデルの構築に活かされるかを，実際のコードとともに概観します．
 機械学習の手法の詳細については他の専門書に委ねることとし，本節では「SQLで取り出したデータがそのまま機械学習に使えるわけではない」という事実と，機械学習に至るまでに実際に何をするのかを掴むことに集中しましょう．
 
-なお，本節のコードを実行するには，PythonおよびpandasとScikit-Learnライブラリが必要です．
-特にライブラリを未インストールの場合は，事前にコード\ref{code:pip}に記したコマンドでインストールしておいてください．
-\begin{figure}[htb]
-    \begin{minted}[gobble=1,
-        bgcolor=background,
-        fontsize=\small,
-        linenos=false]{bash}
+なお，本節のコードを実行するには，Pythonおよびpandasとscikit-learnライブラリが必要です．
+ライブラリをインストールしていない場合は，第\ref{sec:pandas-install}節を参照の上，ライブラリをインストールしてください．
+% 特にライブラリを未インストールの場合は，事前にコード\ref{code:pip}に記したコマンドでインストールしておいてください．
+% \begin{figure}[!htbp]
+%     \begin{minted}[gobble=1,
+%         bgcolor=background,
+%         fontsize=\small,
+%         linenos=false]{bash}
 
-    pip install pandas
-    pip install scikit-learn
+%     pip install pandas
+%     pip install scikit-learn
 
-    \end{minted}
-    \captionsetup{name=コード}
-    \caption{pandasおよびScikit-Learnをインストールするコマンド．}
-    \label{code:pip}
-\end{figure}
+%     \end{minted}
+%     \captionsetup{name=コード}
+%     \caption{pandasおよびScikit-Learnをインストールするコマンド．}
+%     \label{code:pip}
+% \end{figure}
 
 
 \subsection{SQLの問い合わせ結果をPythonで受け取る}
@@ -427,9 +491,10 @@
 % pandasは行列データを効率的に扱うNumPyライブラリをベースに実装されていることもあり，機械学習ライブラリとの相性が良いです．
 % 実際，機械学習のためのライブラリとして最も有名なScikit-Learnは，pandasのデータフレーム（後述）を直接入力として受け取ることができます．
 
-pandasでは\graybox{pandas.read\_sql}関数を用いることで，関係データベースへの問い合わせ結果を直接受け取り，Python上の表形式データ構造であるデータフレームに変換することができます．
-コード\ref{code:read_sql}は，SQLite上に格納されたフリマアプリの関係データベースに，\ref{sec:data-extraction}節で示した SQL文（コード\ref{code:machine-learning-dataset-sql}）を用いて問い合わせを行い，その結果をデータフレームとして受け取るPythonコードの例です．
-\begin{figure}[htb]
+% pandasでは\graybox{pandas.read\_sql}関数を用いることで，関係データベースへの問い合わせ結果を直接受け取り，Python上の表形式データ構造であるデータフレームに変換することができます．
+まずは，第\ref{sec:pandas-read-sql}節で説明した\graybox{pandas.read\_sql}関数を用いて，SQLの問い合わせ結果をpandasデータフレームに変換しましょう．
+コード\ref{code:read_sql}は，SQLite上に格納されたフリマアプリの関係データベースに第\ref{sec:data-extraction}節で示したSQL文（コード\ref{code:machine-learning-dataset-sql}）を用いて問い合わせを行い，その結果をデータフレームとして受け取るPythonコードの例です．
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -453,14 +518,15 @@ pandasでは\graybox{pandas.read\_sql}関数を用いることで，関係デー
     \label{code:read_sql}
 \end{figure}
 
-たった数行で，SQLの問い合わせ結果をPython側で扱えるようになります．
-MySQLやPostgreSQL など他の関係データベースシステムを用いる場合も，\graybox{pandas.read\_sql}関数を同様に使うことができます．
-このように，pandasは「データベースと機械学習をつなぐ接点」となります．
+% たった数行で，SQLの問い合わせ結果をPython側で扱えるようになります．
+% MySQLやPostgreSQL など他の関係データベースシステムを用いる場合も，\graybox{pandas.read\_sql}関数を同様に使うことができます．
+% このように，pandasは「データベースと機械学習をつなぐ接点」となります．
 
 % 以下，「売れやすさ予測を行うモデル」を構築するための最低限のpandasの機能を紹介します．
 % pandasの詳しい使い方や様々な前処理テクニックについては，公式ドキュメント\footnote{pandas公式ドキュメント: \url{https://pandas.pydata.org/docs/}}や参考書\cite{前処理大全}などを参照してください．
 
-以下，「売れやすさ予測を行うモデル」を構築するための最低限の前処理を行います．
+こうしてPython用にデータの準備ができましたので，
+以下では「売れやすさ予測を行うモデル」を構築するための最低限の前処理を行っていきます．
 
 % \subsection{pandasとデータフレーム}
 % pandasは表形式のデータを扱うために便利なPythonライブラリです．
@@ -477,9 +543,9 @@ MySQLやPostgreSQL など他の関係データベースシステムを用いる�
 
 % SQLへの問い合わせ結果をpandasで扱えるようにするには，\graybox{pandas.read\_sql}という関数を用います．
 % コード\ref{code:read_sql}は，SQLite上に格納されたフリマアプリの関係データベースに問い合わせを行い，「商品の売れやすさを予測するAI」を構築するためのデータを抽出し，pandasで扱えるようにするPythonコードです．
-% 問い合わせのためのSQL文は，\ref{sec:data-extraction}節で説明したものとまったく同じです．
+% 問い合わせのためのSQL文は，第\ref{sec:data-extraction}節で説明したものとまったく同じです．
 % 今回は関係データベースシステムとしてSQLiteを用いていますが，MySQLやPostgreSQLなどの他の関係データベースシステムを用いる場合も，\graybox{pandas.read\_sql}関数を同様に使うことができます．
-% \begin{figure}[htb]
+% \begin{figure}[!htbp]
 %     \begin{minted}[gobble=1,
 %         bgcolor=background,
 %         fontsize=\small,
@@ -512,32 +578,39 @@ MySQLやPostgreSQL など他の関係データベースシステムを用いる�
 
 
 \subsection{機械学習のための前処理}
-データフレームに読み込んだデータを，そのまま機械学習モデルに渡すことはできません．
-機械学習の本質は「数学的な計算」であるため，入力となるデータはすべて数値のあつまり（ベクトルや行列）に変換されている必要があります（図\ref{fig:to-numerical-data}）．
-\begin{figure}[tb]
-    \centering
-    \includegraphics[width=0.75\textwidth]{figure/design-and-analysis-example/to-numerical-data.pdf}
-    \caption{機械学習のための数値データ変換．}
-    \label{fig:to-numerical-data}
-\end{figure}
-ところが，\ref{sec:data-extraction}節で抽出したデータフレームには，すぐには数値として扱えないデータが多数含まれています．
-このような問題を解消するために，機械学習の適用に先立って\strong{前処理（Data Wrangling）}と呼ばれる作業を行います．
-一般に，データ分析や機械学習のプロジェクトにおいて，前処理にかかる時間と労力は全体の8割を占めると言われています（残りの2割が実際のモデルの構築と評価です）．
+% データフレームに読み込んだデータを，そのまま機械学習モデルに渡すことはできません．
+% 機械学習の本質は「数学的な計算」であるため，入力となるデータはすべて数値のあつまり（ベクトルや行列）に変換されている必要があります（図\ref{fig:to-numerical-data}）．
+% \begin{figure}[!htbp]
+%     \centering
+%     \includegraphics[width=0.75\textwidth]{figure/design-and-analysis-example/to-numerical-data.pdf}
+%     \caption{機械学習のための数値データ変換．}
+%     \label{fig:to-numerical-data}
+% \end{figure}
+% ところが，第\ref{sec:data-extraction}節で抽出したデータフレームには，すぐには数値として扱えないデータが多数含まれています．
+% このような問題を解消するために，機械学習の適用に先立って\strong{前処理（Data Wrangling）}と呼ばれる作業を行います．
+% 一般に，データ分析や機械学習のプロジェクトにおいて，前処理にかかる時間と労力は全体の8割を占めると言われています（残りの2割が実際のモデルの構築と評価です）．
+% 今回のデータに対して行う前処理は，大きく分けて以下の4つです．
+
+第\ref{sec:data-extraction}節で抽出したデータフレームには，カテゴリを表す文字列やスケールの異なる数値など，そのままでは機械学習モデルで扱いにくいデータが含まれています．
+第\ref{chap:pandas}章で学んだように，機械学習モデルにデータを読み込ませるためには，適切な数値データへと変換する\strong{前処理が不可欠}です．
+
+本節では，抽出した具体的なデータに対してpandasやscikit-learnを用い，モデルの学習に適した形へとデータを加工していきます．
 今回のデータに対して行う前処理は，大きく分けて以下の4つです．
 
 \subsubsection*{欠損値の処理}
 まだ評価がない出品者のスコアや，いいねが1件もついていない商品のいいね数は，外部結合の結果として欠損値（\graybox{NULL/NaN}）のまま抽出されます．
 多くの機械学習モデルは欠損値を想定していません．
 この問題を回避するため，コード\ref{code:missing-value-handling}のように，読み込んだデータフレームの欠損値を穴埋めします．
-\begin{figure}[htb]
+図\ref{fig:missing-value-handling-results}は，コード\ref{code:missing-value-handling}によって欠損値処理が行われたデータフレーム\graybox{df}の内容です．
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
         linenos=false]{python}
 
-    # 出品者平均評価スコアの列の欠損値は3.0（真ん中の値）で穴埋めする．
+    # 出品者スコアの列の欠損値は3.0（真ん中の値）で穴埋めする．
     # 穴埋めした結果を同じ列に上書きする．
-    df['出品者平均評価スコア'] = df['出品者平均評価スコア'].fillna(3.0)
+    df['出品者スコア'] = df['出品者スコア'].fillna(3.0)
 
     # いいね数の列の欠損値は0で穴埋めする．
     # 穴埋めした結果を同じ列に上書きする．
@@ -553,19 +626,26 @@ MySQLやPostgreSQL など他の関係データベースシステムを用いる�
     \label{code:missing-value-handling}
 \end{figure}
 
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.99\textwidth]{figure/design-and-analysis-example/missing-value-handling-results.jpg}
+    \caption{コード\ref{code:missing-value-handling}によって欠損値処理が行われた\graybox{df}．}
+    \label{fig:missing-value-handling-results}
+\end{figure}
+
 
 % \subsection{欠損値の処理}
 % データの前処理で典型的に行われる処理の一つが，欠損値の処理です．
 
 % 多くの機械学習モデルは入力としてベクトルや行列データを想定しており，そこに欠損値があることは想定していません．
 % ところが，実際のデータには様々な理由でデータの一部が空になっている箇所がある事がよくあります．
-% 先ほど読み込んだデータフレーム\graybox{df}においても，「出品者平均評価スコア」「いいね数」「取引ID」の列が欠損値（NaN）になっているのある行が多数存在します．
+% 先ほど読み込んだデータフレーム\graybox{df}においても，「出品者スコア」「いいね数」「取引ID」の列が欠損値（NaN）になっているのある行が多数存在します．
 % なぜなら，まだ評価がない出品者のスコアや「いいね」が1件もついていない商品のいいね数，まだ売れていない商品の取引IDなどは，外部結合時に値が存在しない（NULL）状態として抽出されるためです．
 % このままでは機械学習を適切に行うことができないため，欠損値を適切に処理する必要があります．
 
 % 欠損値の処理方法は様々なものがありますが，ここでは以下の方針で対応してみましょう．
 % \begin{itemize}
-% \item 出品者平均評価スコア：評価がまだ無いということは「良いか悪いか分からない」ので，中間値である\graybox{3.0}で穴埋めをする
+% \item 出品者スコア：評価がまだ無いということは「良いか悪いか分からない」ので，中間値である\graybox{3.0}で穴埋めをする
 % \item いいね数：いいねが1件もついていないということは「いいね数が0」であると解釈できるので，\graybox{0}で穴埋めをする
 % \item 取引ID：まだ売れていない商品であることを示すので，\graybox{0}という印をつけておく．逆に取引IDがあるものは\graybox{1}の印をつけておく
 % \end{itemize}
@@ -574,15 +654,15 @@ MySQLやPostgreSQL など他の関係データベースシステムを用いる�
 % pandasのデータフレーム\graybox{df}は，\graybox{df['列名']}のように列を指定することで，その列のデータを取り出すことができます．
 % また，取り出した列データに対して\graybox{.関数名()}のように書くことで，列データに関数を適用することができます．
 % 例えば，コード\ref{code:missing-value-handling}では，\graybox{df['いいね数'].fillna(0)}とすることで，「いいね数」列の欠損値を0で穴埋めしています．
-% \begin{figure}[htb]
+% \begin{figure}[!htbp]
 %     \begin{minted}[gobble=1,
 %         bgcolor=background,
 %         fontsize=\small,
 %         linenos=false]{python}
 
-%     # 出品者平均評価スコアの列の欠損値は3.0で穴埋めする．
+%     # 出品者スコアの列の欠損値は3.0で穴埋めする．
 %     # 穴埋めした結果を同じ列に上書きする．
-%     df['出品者平均評価スコア'] = df['出品者平均評価スコア'].fillna(3.0)
+%     df['出品者スコア'] = df['出品者スコア'].fillna(3.0)
 
 %     # いいね数の列の欠損値は0で穴埋めする．
 %     # 穴埋めした結果を同じ列に上書きする．
@@ -609,7 +689,7 @@ MySQLやPostgreSQL など他の関係データベースシステムを用いる�
 % \begin{align}
 % z = \frac{x - \mu}{\sigma}
 % \end{align}
-% \begin{figure}[htb]
+% \begin{figure}[!htbp]
 %     \centering
 %     \includegraphics[width=0.90\textwidth]{figure/design-and-analysis-example/standardization.png}
 %     \caption{機械学習のための数値データ変換．}
@@ -617,14 +697,22 @@ MySQLやPostgreSQL など他の関係データベースシステムを用いる�
 % \end{figure}
 コード\ref{code:standardization}は，データフレーム\graybox{df}の「価格」列に対して標準化を行うPythonコードの例です．
 小カテゴリごとに価格の標準化を行った結果を，新しい列「標準化価格」として追加しています．
-\begin{figure}[htb]
+コード\ref{code:standardization}を実行すると，図\ref{fig:standardization-results}のように，元の価格が標準化された新しい列「標準化価格」が追加されます．
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
         linenos=false]{python}
 
+    # scikit-learnのStandardScalerクラスを読み込んでおく
+    from sklearn.preprocessing import StandardScaler
+
+    # StandardScalerのインスタンス化（この1行が必要です）
+    scaler = StandardScaler()
+
+    # グループごとにStandardScalerを適用
     df['標準化価格'] = df.groupby('小カテゴリ')['価格'].transform(
-        lambda x: (x - x.mean()) / x.std()
+        lambda x: scaler.fit_transform(x.values.reshape(-1, 1)).flatten()
     )
 
     \end{minted}
@@ -633,6 +721,12 @@ MySQLやPostgreSQL など他の関係データベースシステムを用いる�
     \label{code:standardization}
 \end{figure}
 
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.99\textwidth]{figure/design-and-analysis-example/standardization-results.jpg}
+    \caption{コード\ref{code:standardization}によって列「価格」に対する標準化が行われた\graybox{df}．}
+    \label{fig:standardization-results}
+\end{figure}
 
 % \subsection{カテゴリごとの価格の標準化}
 % 続いて，価格の列に対して前処理を行いましょう．
@@ -652,7 +746,7 @@ MySQLやPostgreSQL など他の関係データベースシステムを用いる�
 % z = \frac{x - \mu}{\sigma}
 % \end{align}
 % 標準化も典型的な前処理の1つであり，機械学習のパフォーマンス向上のためによく用いられます．
-% \begin{figure}[htb]
+% \begin{figure}[!htbp]
 %     \centering
 %     \includegraphics[width=0.90\textwidth]{figure/design-and-analysis-example/standardization.png}
 %     \caption{機械学習のための数値データ変換．}
@@ -661,7 +755,7 @@ MySQLやPostgreSQL など他の関係データベースシステムを用いる�
 
 % コード\ref{code:standardization}は，データフレーム\graybox{df}の「価格」列に対して標準化を行うPythonコードの例です．
 % 小カテゴリごとに価格の標準化を行った結果を，新しい列「標準化価格」として追加しています．
-% \begin{figure}[htb]
+% \begin{figure}[!htbp]
 %     \begin{minted}[gobble=1,
 %         bgcolor=background,
 %         fontsize=\small,
@@ -691,7 +785,7 @@ MySQLやPostgreSQL など他の関係データベースシステムを用いる�
 テキストデータの数値変換には単語の出現頻度分析や感情スコア分析，埋め込みベクトル化など様々な方法がありますが，
 ここではテキストの内容は無視して，説明文の文字数をテキスト情報として数値化します．
 コード\ref{code:text-to-number}は，データフレーム\graybox{df}の「説明文」列に対して文字数を計算するPythonコードの例です．
-\begin{figure}[htb]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -705,7 +799,12 @@ MySQLやPostgreSQL など他の関係データベースシステムを用いる�
     \caption{列「説明文」に対して文字数を計算するPythonコードの例．}
     \label{code:text-to-number}
 \end{figure}
-
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.99\textwidth]{figure/design-and-analysis-example/text-to-number-results.jpg}
+    \caption{コード\ref{code:text-to-number}によってテキストデータが数値化された\graybox{df}．}
+    \label{fig:text-to-number-results}
+\end{figure}
 
 \subsubsection*{カテゴリ変数のダミー変数化}
 %最後の前処理として，カテゴリ変数のダミー変数化を行いましょう．
@@ -720,7 +819,7 @@ MySQLやPostgreSQL など他の関係データベースシステムを用いる�
 % 図\ref{fig:one-hot-encoding}は，「配送方法」というカテゴリ変数をダミー変数化する例です．
 % 「配送方法」の列は値として「宅急便」「ポスト投函」「着払い」のいずれかを取りうるため，「配送方法\_宅急便」「配送方法\_ポスト投函」「配送方法\_着払い」という3つの新しい列が作られます．
 % その上で，例えば新しく作成された「配送方法\_宅急便」の列には，「配送方法」の値が「宅急便」である行には1が設定され，「配送方法」の値が「ポスト投函」や「着払い」である行には0が設定されます．
-% \begin{figure}[htb]
+% \begin{figure}[!htbp]
 %     \centering
 %     \includegraphics[width=0.85\textwidth]{figure/design-and-analysis-example/one-hot-encoding.pdf}
 %     \caption{カテゴリ変数のダミー変数化の例．}
@@ -729,7 +828,8 @@ MySQLやPostgreSQL など他の関係データベースシステムを用いる�
 
 pandasでは，\graybox{pd.get\_dummies}関数を用いて簡単にダミー変数化を行うことができます．
 コード\ref{code:dummy-coding}は，データフレーム\graybox{df}の「状態」「大カテゴリ」「小カテゴリ」「配送方法」列に対してダミー変数化を行うPythonコードの例です．
-\begin{figure}[htb]
+コード\ref{code:dummy-coding}を実行すると，図\ref{fig:dummy-coding-results}のように，ダミー変数化された新しい列が多数追加されたデータフレーム\graybox{df}が得られます．
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -744,6 +844,13 @@ pandasでは，\graybox{pd.get\_dummies}関数を用いて簡単にダミー変�
     \label{code:dummy-coding}
 \end{figure}
 
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.99\textwidth]{figure/design-and-analysis-example/dummy-coding-results.jpg}
+    \caption{コード\ref{code:dummy-coding}によってカテゴリ変数がダミー変数化された\graybox{df}．}
+    \label{fig:dummy-coding-results}
+\end{figure}
+
 % これで最低限必要な前処理を終えることができました．
 % 実際のデータ分析・機械学習プロジェクトでは，
 % \begin{itemize}
@@ -755,7 +862,7 @@ pandasでは，\graybox{pd.get\_dummies}関数を用いて簡単にダミー変�
 % 興味のある方は，前処理のテクニックをまとめた参考書\cite{前処理大全}などを参照してみてください．
 
 最後にコード\ref{code:finalize-dataset}を実行し，予測に使わない商品IDや説明文の列を取り除き，機械学習モデルに読み込ませるための数値データだけを残したデータフレーム\graybox{df\_processed}を別途作成しておきましょう．
-\begin{figure}[htb]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -774,7 +881,7 @@ pandasでは，\graybox{pd.get\_dummies}関数を用いて簡単にダミー変�
 
 なお，欠損値の置換や基本的な集計はSQLでも実現可能ですが，標準化，ダミー変数化，テキスト処理といった操作はSQLでは記述が煩雑になります．
 一方，それらの処理は，pandasを使えばごく短いコードで書けます．
-逆に，メモリに載らないほど巨大なデータの結合や集計は，pandasではなくデータベースシステムの方が圧倒的に強いです．
+逆に，メモリに載らないほど巨大なデータの結合や集計は，pandasではなくデータベースシステムの方が圧倒的に優れています．
 「SQLでデータを絞り込んで抽出し，Python（pandas）で前処理を行う」という役割分担が，データ分析現場のベストプラクティスと言えるでしょう．
 
 % \begin{notebox}{なぜSQLではなくPandasで前処理を行うのか}
@@ -796,13 +903,13 @@ pandasでは，\graybox{pd.get\_dummies}関数を用いて簡単にダミー変�
 
 \subsection{機械学習モデルの構築と評価}
 前処理を終えたデータを用いて，「商品が売れるか売れないか」を予測する分類モデルを構築しましょう．
-ここでは手軽に試せつつそこそこ高い性能が期待できる\strong{ランダムフォレスト（Random Forest）}を用います．
+ここでは手軽に試せつつ，そこそこ高い性能が期待できる\strong{ランダムフォレスト（Random Forest）}を用います．
 PythonのScikit-Learnライブラリを使うと，モデルの定義・学習・評価をわずかなコードで実行できます．
 
 モデルの学習に用いたデータをそのまま評価にも使ってしまうと，モデルが学習データに過剰に適合していた場合に「学習データには高精度だが，未知のデータにはまったく通用しない」という事態を招いてしまいます．
 こういった問題を避けるために手持ちのデータを学習用データと評価用データに分割するのが定石です．
 一般に機械学習を行う際には，データ分割後，学習用データを用いてモデル構築を行い，使っていない評価用データを用いてモデルの性能を評価する，という手順を踏むのがお作法となっています（図\ref{fig:ml-ops}）．
-\begin{figure}[tb]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=0.90\textwidth]{figure/design-and-analysis-example/ml-ops.pdf}
     \caption{機械学習モデルの学習と評価の基本的な考え方．}
@@ -810,7 +917,8 @@ PythonのScikit-Learnライブラリを使うと，モデルの定義・学習�
 \end{figure}
 
 コード\ref{code:model-train-and-evaluation} は，データフレーム\graybox{df\_processed}から説明変数$X$と目的変数$y$を取り出した後，7対3の割合でデータを分割し，ランダムフォレストで定義されたモデルの学習・評価を行うPythonコードの例です．
-\begin{figure}[htb]
+このコードを実行すると，図\ref{fig:model-train-and-evaluation-results}のように，学習されたモデルの性能を表す評価指標が出力されます．
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -847,6 +955,13 @@ PythonのScikit-Learnライブラリを使うと，モデルの定義・学習�
     \label{code:model-train-and-evaluation}
 \end{figure}
 
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.70\textwidth]{figure/design-and-analysis-example/model-train-and-evaluation.jpg}
+    \caption{コード\ref{code:model-train-and-evaluation}の実行結果（評価指標）．}
+    \label{fig:model-train-and-evaluation-results}
+\end{figure}
+
 学習したモデルを評価した結果，売れると予測された商品のうち実際に売れた商品は約90\%，売れ残ると予測された商品のうち実際に売れ残った商品は約72\%となりました．
 データセット中の売れた商品の割合が約83\%であることを考慮すると，売れ残り予想の精度には改善の余地があるものの，ランダムに予測するよりも性能が良いことが分かります．
 
@@ -855,7 +970,7 @@ PythonのScikit-Learnライブラリを使うと，モデルの定義・学習�
 最後に，構築したモデルが予測の際にどの特徴量を重視しているかを確認してみましょう．
 Scikit-Learn のランダムフォレストには，各特徴量の予測への寄与度を計算する機能があります．
 コード\ref{code:feature-importance}は，構築したモデルにおける特徴量の寄与度を計算し，重要な特徴量トップ10を表示するPythonコードの例です．
-\begin{figure}[htb]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -883,7 +998,7 @@ Scikit-Learn のランダムフォレストには，各特徴量の予測への�
     \item 送料が着払いか否か
 \end{itemize} が大きく影響していることが分かります．
 説明文の長さが売れやすさに影響するという結果は少し意外かもしれませんが，丁寧に書かれた説明文が購入者の安心感につながるのかもしれません．
-\begin{figure}[tb]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=0.90\textwidth]{figure/design-and-analysis-example/feature-importance.pdf}
     \caption{商品の売れやすさを予測するモデルにおける特徴量の重要度Top10．}
@@ -920,7 +1035,7 @@ Scikit-Learn のランダムフォレストには，各特徴量の予測への�
 % コード\ref{code:setup-model}は，データフレーム\graybox{df\_processed}から説明変数$X$と目的変数$y$を分け，ランダムフォレストのモデルを定義するPythonコードの例です．
 % コードの途中，目的変数$y$の値の内訳を確認しています．
 % 実行結果から，このデータセットには10000個の商品データが含まれており，そのうち売れた商品が8331個，売れなかった商品が1669個であることが分かります．
-% \begin{figure}[htb]
+% \begin{figure}[!htbp]
 %     \begin{minted}[gobble=1,
 %         bgcolor=background,
 %         fontsize=\small,
@@ -958,7 +1073,7 @@ Scikit-Learn のランダムフォレストには，各特徴量の予測への�
 % テストで点を取るために過去問をたくさん勉強した結果，過去問は高得点が解けるようになっていい気になっていたが，本番テストでは点が取れなくて悲しい思いをする -- というのと同じようなことが起きてしまうのです．
 
 % こういった事態を避けるために，一般に機械学習を行う際には，図\ref{fig:ml-ops}のように，手持ちのデータを学習用データと評価用データに分割を行い，学習用データを用いてモデルの構築を起こった後，使っていない評価用データを用いてモデルの性能を評価する，という手順を踏むことがお作法となっています．
-% \begin{figure}[htb]
+% \begin{figure}[!htbp]
 %     \centering
 %     \includegraphics[width=0.90\textwidth]{figure/design-and-analysis-example/ml-ops.pdf}
 %     \caption{機械学習モデルの学習と評価の基本的な考え方．}
@@ -969,7 +1084,7 @@ Scikit-Learn のランダムフォレストには，各特徴量の予測への�
 % ここでは，シンプルさを優先して，手持ちのデータセットを学習用データと評価用データに一定の割合に分割する方法（ホールドアウト法）を採ります．
 % コード\ref{code:model-train-and-evaluation}は，データセットを7対3の割合で学習用データと評価用データに分割し，学習用データを用いてモデルの学習を行い，評価用データを用いてモデルの性能を評価するPythonコードの例です．
 % 「評価データに対する予測性能」の出力結果には，売れると予測された商品のうち実際に売れた商品の割合（適合率; precision），実際に売れた商品のうち売れると予測された商品の割合（再現率; recall），および適合率と再現率の調和平均であるF値などが表示されます．
-% \begin{figure}[htb]
+% \begin{figure}[!htbp]
 %     \begin{minted}[gobble=1,
 %         bgcolor=background,
 %         fontsize=\small,
@@ -1017,7 +1132,7 @@ Scikit-Learn のランダムフォレストには，各特徴量の予測への�
 % 最後に，構築したモデルは予測に際して，どのような特徴量を重視しているのかを確認してみましょう．
 % Scikit-Learnのランダムフォレストは，予測における各特徴量の寄与度を計算する機能があります．
 % コード\ref{code:feature-importance}は，構築したモデルにおける特徴量の重要度を計算し，重要な特徴量トップ10を表示するPythonコードの例です．
-% \begin{figure}[htb]
+% \begin{figure}[!htbp]
 %     \begin{minted}[gobble=1,
 %         bgcolor=background,
 %         fontsize=\small,
@@ -1035,7 +1150,7 @@ Scikit-Learn のランダムフォレストには，各特徴量の予測への�
 %     \label{code:feature-importance}
 % \end{figure}
 
-% \begin{figure}[htb]
+% \begin{figure}[!htbp]
 %     \centering
 %     \includegraphics[width=0.90\textwidth]{figure/design-and-analysis-example/feature-importance.pdf}
 %     \caption{商品の売れやすさを予測するモデルにおける特徴量の重要度Top10．}

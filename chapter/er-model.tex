@@ -1,7 +1,7 @@
 \chapter{関係データベースの設計 -- 実体関連モデル}\label{chap:er-model}
 
-\ref{chap:anomaly}章では，データの挿入，削除，更新時に発生するデータベースの不都合である異状について説明しました．
-データベースの異状を含め，データベースを常に正しく矛盾がない状態に保つためには，\ref{chap:relational-data-model}章で説明した関係データモデルの制約やテーブルの構造を適切に設計することが重要になってきます．
+第\ref{chap:anomaly}章では，データの挿入，削除，更新時に発生するデータベースの不都合である異状について説明しました．
+データベースの異状を含め，データベースを常に正しく矛盾がない状態に保つためには，第\ref{chap:relational-data-model}章で説明した関係データモデルの制約やテーブルの構造を適切に設計することが重要になってきます．
 
 ところが，データベースを正しく設計することは想像以上に難しいことです．
 これまでの章で説明に用いてきたテーブルは高々2，3個でした．
@@ -15,9 +15,9 @@
 
 
 \section{データモデリングの流れ}
-\ref{chap:concept-of-database}章で説明したように，データモデリングとは対象とする課題に応じて扱うべき情報を取捨選択し，データの構造，制約条件，操作方法を設計する行為です．
+第\ref{chap:concept-of-database}章で説明したように，データモデリングとは対象とする課題に応じて扱うべき情報を取捨選択し，データの構造，制約条件，操作方法を設計する行為です．
 図\ref{fig:data_modeling_process}が示すように，一般にデータモデリングは概念モデリング，論理モデリングの順で行われます．
-\begin{figure}[tb]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=0.8\textwidth]{figure/er-model/data-modeling-process.jpg}
     \caption{データモデリングの流れ}
@@ -51,7 +51,7 @@
 例えば，実体関連モデルの概念を学んだ初心者がいざ実体関連モデルを作ろうとすると，何をどうすればよいのか困るでしょうし，モデルを作ったもののそれが正しいものか不安になるでしょう．
 
 設計は知識よりも経験（考え方の体得）が効いてきます．
-データモデリングのような抽象的な思考を体得するには，とにかく「やってみては間違えるを繰り返す」しかありません．
+データモデリングのような抽象的な思考を体得するには，とにかく「やっては間違えてを繰り返す」しかありません．
 \end{notebox}
 
 
@@ -100,7 +100,7 @@ Peter Chenの記法では，実体関連図において，
 
 図\ref{fig:product_entity}は，あるショッピングサイトにおける実体型「商品」を実体関連図として表現したものです．
 仮にこのような実体型「商品」を設計した場合，このショッピングサイトで取り扱うすべての商品は必ず「商品ID」「商品名」「価格」「発売日」を属性として持つ（そして，これら以外の属性は持たない）ことがルールとして定められたことになります．
-\begin{figure}[htb]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=0.7\textwidth]{figure/er-model/product-entity.jpg}
     \caption{実体型「商品」の実体関連図}
@@ -147,7 +147,7 @@ Peter Chenの記法では実体関連図において，
 また，関連型とその属性は線で結び，関連型はつながりのある実体型と線で結びます．
 
 図\ref{fig:wishlist_relationship}は，実体型「ユーザ」「商品」，および関連型「お気に入り」を実体関連図として表現したものです．
-\begin{figure}[htb]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=0.85\textwidth]{figure/er-model/wishlist-relationship.pdf}
     \caption{実体型「ユーザ」「商品」と関連型「お気に入り」の実体関連図}
@@ -172,7 +172,7 @@ Peter Chenの記法では実体関連図において，
 関連集合は「集合」であるため，\graybox{(U1,P1)}のような同じ値の要素を複数持つことはできないのです．
 この実体関連モデルでは，ユーザは同じ商品に対するお気に入りを1回分しか登録できないことになります．
 あるユーザの同じ商品に対する複数回のお気に入りを別々に扱いたい場合は，モデリングを工夫する必要があります（これについては，後ほど説明します）．
-\begin{figure}[tb]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=0.85\textwidth]{figure/er-model/er-model-elements.pdf}
     \caption{実体型「ユーザ」「商品」と関連型「お気に入り」の実体集合および関連集合の要素の例}
@@ -203,7 +203,7 @@ Peter Chenの記法では実体関連図において，
 この状況を先に定義した実体関連モデルで考えてみると，図\ref{fig:er_model_without_role}のように，「山畑滝子」という唯一無二の実体が実体集合「先輩学生」と実体集合「後輩学生」のそれぞれの要素に現れてしまいます（\graybox{S2}と\graybox{J1}）．
 検討しているデータベースでは学生情報を管理したいので，2つの実体集合に同じ情報が二重に登場するのは冗長で望ましくありません．
 先の実体関連モデリングは適切ではなかったのです．
-\begin{figure}[htb]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=0.8\textwidth]{figure/er-model/er-model-without-role.pdf}
     \caption{役割を明示しない実体関連図の例．分かりやすさのために，要素の隣には属性「名前」の値を記載している．}
@@ -221,7 +221,7 @@ Peter Chenの記法では実体関連図において，
 \end{itemize}
 を別々に引き，直線が意味する役割を明示します（つまり2本の線を引く）．
 こうすることで，学生の概念を実体型「学生」だけに集約ができ，かつ先輩後輩の関係を表現できるようになります．
-\begin{figure}[htb]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=1.0\textwidth]{figure/er-model/er-model-with-role.pdf}
     \caption{役割を明示した実体関連図の例}
@@ -267,7 +267,7 @@ Peter Chenの記法では実体関連図において，
 図\ref{fig:er_model_elements2}は，あるショッピングサイトにおける商品の「お気に入り」に関する実体型および関連型の要素を示したものです（図\ref{fig:er_model_elements}と似ていますが，問題のあった関連（お気に入り\graybox{(U1,P1)}の2つ目）を取り除き，商品\graybox{P3}を追加しています）．
 図の実体型「商品」に注目すると，どの実体「ユーザ」とも関連を持たない実体「商品」\graybox{（P3）}（タケノコの山）が存在していることが分かります．
 これは，誰も商品\graybox{P3}の購入を希望していないことを意味します．
-\begin{figure}[tb]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=0.85\textwidth]{figure/er-model/er-model-elements2.pdf}
     \caption{どの実体「ユーザ」とも関連を持たない実体「商品」が存在している例．}
@@ -280,7 +280,7 @@ Peter Chenの記法では実体関連図において，
 実体関連図上でこの「全体的」な参加を表現する際は，実体型$E_1$と関連型$R$を結ぶ線を\strong{太線}にすることで明示します．
 例えば，先のショッピングサイトの例で考えてみましょう．
 実体型「商品」の関連型「お気に入り」への参加が「全体的」である場合は，図\ref{fig:participation_constraint}のような実体関連図になります．
-\begin{figure}[tb]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=1.0\textwidth]{figure/er-model/participation-constraint.pdf}
     \caption{参加制約の例}
@@ -296,7 +296,7 @@ Peter Chenの記法では実体関連図において，
 
 % 実体型$E$の関連型$R$への参加が「全体的」であるとき，実体関連図上では$E$と$R$の間の直線を\strong{太線}にすることによって表現します．
 % 例えば，先のショッピングサイトの例において，実体型「商品」の関連型「お気に入り」への参加が「全体的」であるとするときは，図\ref{fig:participation_constraint}のような実体関連図にします．
-% \begin{figure}[tb]
+% \begin{figure}[!htbp]
 %     \centering
 %     \includegraphics[width=1.0\textwidth]{figure/er-model/participation-constraint.pdf}
 %     \caption{参加制約の例}
@@ -310,7 +310,7 @@ Peter Chenの記法では実体関連図において，
 ショッピングサイトの例に戻りましょう．
 お気に入り登録に加えて，各商品がどのメーカーによって製造されたかの情報についても管理する実体関連モデルを設計したとします．
 図\ref{fig:er_model_elements3}は，その実体関連モデルに基づき実体集合「ユーザ」「商品」「メーカー」および関連集合「お気に入り」「製造」の要素を図示したものです．
-\begin{figure}[tb]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=1.0\textwidth]{figure/er-model/er-model-elements3.pdf}
     \caption{実体「メーカー」と関連「製造」も加えた実体関連図の要素の例．}
@@ -358,7 +358,7 @@ Peter Chenの記法では実体関連図において，
 \end{itemize}
 図\ref{fig:er_model_elements3}の内容を踏まえて実体関連図を設計すると，図\ref{fig:cardinality_constraint}のようになります．
 関連型「お気に入り」から実体型「ユーザ」への線は直線に，関連型「製造」から実体型「メーカー」への線は矢印線になっています．
-\begin{figure}[tb]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=1.0\textwidth]{figure/er-model/cardinality-constraint.pdf}
     \caption{多重度制約を表現した実体関連図の例．}
@@ -380,7 +380,7 @@ Peter Chenの記法では実体関連図において，
 \item 実体型「家族」を追加
 \item 実体「ユーザ」と実体「家族」が同居関係にあることを示すために，関連型「同居」を追加
 \end{itemize}
-すること検討しているとしましょう．
+することを検討しているとしましょう．
 この際，実体「家族」にはユーザ名は割り振られず，家族の誰かに商品を送るときは，その家族のユーザがサイトにログインをして手続きをすることを想定してください．
 
 このようなケースでは，\strong{弱実体}という特殊な概念を用いて実体関連図を設計することがあります．
@@ -404,7 +404,7 @@ Peter Chenの記法では実体関連図において，
 図中では，弱実体型「家族」は「氏名」「続柄」のみを属性として持っています．
 なお，「氏名」は部分キーであり，弱実体型「家族」の主キーに設定していません．
 主たるユーザがいてこその弱実体「家族」であり，「家族」を独立して管理する意味がないからです．
-\begin{figure}[tb]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=1.0\textwidth]{figure/er-model/weak-entity.pdf}
     \caption{弱実体の例}
@@ -487,7 +487,7 @@ ISBN番号が何であろうと，図書館が保有しているある図書を�
 
 実体関連図において，継承元となる上位の実体型と継承先となる下位の実体型の間には，汎化・継承関係があることを示す「isa」と記した三角の特別な関連記号を置きます．
 例えば，先の実体型「大学構成員」「学生」「教員」を汎化・継承の概念を使って実体関連図を書くと，図\ref{fig:inheritance}のように表現できます．
-\begin{figure}[tb]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=0.8\textwidth]{figure/er-model/inheritance.pdf}
     \caption{汎化・継承の例}
@@ -501,7 +501,7 @@ ISBN番号が何であろうと，図書館が保有しているある図書を�
 n個の実体型をつなぐ関連を\strong{n項関連（n-ary relationship）}と呼びます．
 2項関連と同様に，n項関連においても参加制約や多重度制約を考えることができます．
 
-\begin{figure}[tb]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=1.0\textwidth]{figure/er-model/3-ary-relationship1.jpg}
     \caption{3項関連の例}
@@ -517,7 +517,7 @@ n個の実体型をつなぐ関連を\strong{n項関連（n-ary relationship）}
 となっています．
 これは，学生には必ず指導教員が1名，部屋が1つ割り当てられる，ということを意味します．
 
-\begin{figure}[tb]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=1.0\textwidth]{figure/er-model/3-ary-relationship2.pdf}
     \caption{3項関連の例2}
@@ -563,7 +563,7 @@ n項関連においては，ある実体集合$E$に向かう矢印は，「関�
 に対応させることで関係スキーマに変換できます．
 
 図\ref{fig:erd-entity}に示した実体型「ユーザ」は，以下のような関係スキーマに変換されます．
-\begin{figure}[tb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.6\textwidth]{figure/er-model/erd-entity.jpg}
   \caption{実体型「ユーザ」}
@@ -585,7 +585,7 @@ n項関連においては，ある実体集合$E$に向かう矢印は，「関�
 ただし，実体関連間の多重度によってキーの扱いが異なります．
 
 \subsubsection{多重度が「多対多」の場合}
-\begin{figure}[tb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.9\textwidth]{figure/er-model/erd-relation1.pdf}
   \caption{多対多の関連型「お気に入り」}
@@ -618,7 +618,7 @@ n項関連においては，ある実体集合$E$に向かう矢印は，「関�
 
 
 \subsubsection{多重度が「1対多」の場合}
-\begin{figure}[tb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.9\textwidth]{figure/er-model/erd-relation2.jpg}
   \caption{1対多の関連型「製造」}
@@ -644,7 +644,7 @@ n項関連においては，ある実体集合$E$に向かう矢印は，「関�
 \end{align}
 
 \subsubsection{多重度が「1対1」の場合}
-\begin{figure}[tb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.9\textwidth]{figure/er-model/erd-relation3.jpg}
   \caption{1対1の関連型「ロゴ」}
@@ -679,7 +679,7 @@ n項関連においては，ある実体集合$E$に向かう矢印は，「関�
 に対応させればよいです．
 継承先の実体型（$E_2$）の主キーの設定が特殊なので注意しましょう．
 
-\begin{figure}[tb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.8\textwidth]{figure/er-model/erd-inheritance.pdf}
   \caption{実体型「ユーザ」を継承した実体型「プレミアムユーザ」}
@@ -698,7 +698,7 @@ n項関連においては，ある実体集合$E$に向かう矢印は，「関�
 \end{equation}
 
 \subsection{変換パターン4：弱実体型と弱関連型}
-\begin{figure}[tb]
+\begin{figure}[!htbp]
   \centering
   \includegraphics[width=0.9\textwidth]{figure/er-model/weak-entity.pdf}
   \caption{弱実体型「家族」と弱関連型「所属」}
@@ -761,7 +761,7 @@ SQLでテーブルの定義を行うには，\graybox{CREATE TABLE}文を用い�
 \graybox{CREATE TABLE}文の構文はコード\ref{code:create-table-structure}のようになっています．
 ここで，テーブル名は関係スキーマにおける関係名，列名は属性名に対応します．
 主キーや外部キーは，それぞれ関係スキーマで指定している主キー制約，参照整合性制約に対応します．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -781,7 +781,7 @@ SQLでテーブルの定義を行うには，\graybox{CREATE TABLE}文を用い�
     \label{code:create-table-structure}
 \end{figure}
 
-データ型は\ref{chap:relational-data-model}章で説明したドメイン制約に対応するものです．
+データ型は第\ref{chap:relational-data-model}章で説明したドメイン制約に対応するものです．
 SQLでは整数や文字列など，単純なドメイン制約を指定するデータ型が用意されています．
 代表的なデータ型は以下の通りです：
 \begin{itemize}
@@ -811,7 +811,7 @@ SQLでは整数や文字列など，単純なドメイン制約を指定する�
 \end{itemize}
 
 例えば，式\ref{eq:user}で定義した関係スキーマ「ユーザ」，式\ref{eq:product}で定義した関係スキーマ「商品」を用いてテーブル定義するには，コード\ref{code:create-table}のような\graybox{CREATE TABLE}文を用います．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -841,7 +841,7 @@ SQLでは整数や文字列など，単純なドメイン制約を指定する�
 主キーおよび外部キーの指定は，列定義の中で指定する方法と，テーブル全体の制約として指定する方法があります．
 主キーが複数の列の組みあわせで構成される場合など，複雑な主キーや外部キーを指定する場合は，テーブル全体の制約として指定する方法が適しています．
 コード\ref{code:create-table2}は，式\ref{eq:favorite}-\ref{eq:favorite-fk2}で定義した関係スキーマ「お気に入り」をテーブル定義するための\graybox{CREATE TABLE}文の例です．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -869,7 +869,7 @@ SQLでは整数や文字列など，単純なドメイン制約を指定する�
 \subsection{レコードの追加}
 テーブルにレコードを追加するには，\graybox{INSERT}文を用います．
 \graybox{INSERT}文の構文はコード\ref{code:insert-into-structure}のような形式を取ります．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -889,7 +889,7 @@ SQLでは整数や文字列など，単純なドメイン制約を指定する�
 \end{figure}
 
 コード\ref{code:insert-into-example}は，先ほど取り上げたテーブル「商品」に3件のレコードを追加するためのSQL文の例です．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -912,7 +912,7 @@ SQLでは整数や文字列など，単純なドメイン制約を指定する�
 \subsection{レコードの削除}
 テーブル中のレコードを削除するには，\graybox{DELETE}文を用います．
 \graybox{DELETE}文の構文はコード\ref{code:delete-structure}のような形式を取ります．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -931,7 +931,7 @@ SQLでは整数や文字列など，単純なドメイン制約を指定する�
 \end{figure}
 
 コード\ref{code:delete-example}は，先ほど取り上げたテーブル「商品」から特定のレコードを削除するためのSQL文の例です．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -953,7 +953,7 @@ SQLでは整数や文字列など，単純なドメイン制約を指定する�
 \subsection{レコードの修正}
 テーブル中のレコードを修正するには，\graybox{UPDATE}文を用います．
 \graybox{UPDATE}文の構文はコード\ref{code:update-structure}のような形式を取ります．
-\begin{figure}[h]
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -974,8 +974,8 @@ SQLでは整数や文字列など，単純なドメイン制約を指定する�
     \label{code:update-structure}
 \end{figure}
 
-コード\ref{code:update-example}は，先ほど取り上げたテーブル「商品」の中で列「商品ID」の値が\graybox{P002}のレコードを価格を1割引きしたものに修正するSQL文の例です．
-\begin{figure}[h]
+コード\ref{code:update-example}は，先ほど取り上げたテーブル「商品」の中で列「商品ID」の値が\graybox{P002}のレコードの価格を1割引きしたものに修正するSQL文の例です．
+\begin{figure}[!htbp]
     \begin{minted}[gobble=1,
         bgcolor=background,
         fontsize=\small,
@@ -1004,7 +1004,6 @@ SQLでは整数や文字列など，単純なドメイン制約を指定する�
 \subsubsection{Q1. 実体と関連}
 Apple Music\footnote{https://music.apple.com/}やSpotify\footnote{https://open.spotify.com/}，LINE MUSIC\footnote{https://music.line.me/}などのサブスクリプション型音楽ストリーミングサービスでは，月額や年額でサービス使用料を支払うことで，好きなアーティストの好きな楽曲を好きなだけ聴くことができます．
 ユーザは「プレイリスト」と呼ばれる，あるテーマをもとに楽曲を集めたリストを作成・公開することができます．
-また，ユーザは別のユーザをフォローし，そのユーザが新しいプレイリストを作成すると通知を受け取ることもできます．
 
 以下，架空の音楽ストリーミングサービスOrange Musicの実体関連モデルを作成します．
 Orange Musicの構成要素について，以下の条件を満たす実体関連図を作成しなさい．
@@ -1014,26 +1013,29 @@ Orange Musicの構成要素について，以下の条件を満たす実体関�
   \item 「アーティスト」は「アーティストID」「アーティスト名」を持ち，作成した「楽曲」を「公開」する．「公開」には「公開日」が記録される．
   \item 「ユーザ」は「プレイリスト」（属性：「プレイリストID」「プレイリスト名」）を「作成」し，その際「作成日」が記録される．
   \item 「プレイリスト」には「楽曲」を「追加」でき，「追加された日」が記録される．
-  \item 「ユーザ」は別の「ユーザ」を「フォロー」し，その際「フォロー日」が記録される．
 \end{itemize}
 
 \subsubsection{Q2. 多重度と参加制約}
-Q1で作成した実体関連図に「レーベル」（属性：「レーベル名」「住所」）を追加し，以下の設定を読み解いて各関連の「多重度」および「参加制約（全体的か部分的か）」を反映させなさい．
+Q1で作成した実体関連図に実体型「レーベル」（属性：「レーベル名」「住所」）および関連型「いいね」を追加し，以下の設定を読み解いて各関連の「多重度」および「参加制約（全体的か部分的か）」を反映させなさい．
 
 \begin{itemize}
-  \item 「アーティスト」はいずれか1つの「レーベル」に「所属」し，「レーベル」には何組かの「アーティスト」が「所属」する．
+  \item 「アーティスト」は「レーベル」に「所属」することができる．ただし，所属できる「レーベル」は1つだけである．「レーベル」には何組かの「アーティスト」が「所属」する．
   \item 「楽曲」公開時には必ず「アーティスト」が1名登録され，「アーティスト」はいくつかの「楽曲」を「公開」する．
-  \item ある「プレイリスト」を作成した「ユーザ」は必ず一人である．
+  \item ユーザは「プレイリスト」を作成することができる．複数の「ユーザ」が協力し合って「プレイリスト」を作成することはない．「プレイリスト」はOrange Musicのスタッフが作成することがある（「ユーザ」に紐付かない「プレイリスト」が存在する）．
   \item 「ユーザ」は気に入った「楽曲」に「いいね」をすることができる．「ユーザ」は何曲でも「いいね」でき，「いいねされた日（liked\_at）」が記録される．
 \end{itemize}
 
-\subsubsection{Q3. 弱実体と汎化・継承}
-Q2の図をさらに精緻化するため，以下の作業を行いなさい．
+\subsubsection{Q3. 汎化・継承}
+%\subsubsection{Q3. 弱実体と汎化・継承}
+Orange Musicは追加サービスとして「プレミアムユーザ」サービスを開始した．
+「ユーザ」は追加料金を支払うことで「プレミアムユーザ」になることができる．
+「プレミアムユーザ」は最大100曲まで「楽曲」を「ダウンロード」でき，その際「ダウンロード日」が記録される．
+汎化・継承の概念を用いて，この状況をQ2の実体関連図に追加しなさい．
 
-\begin{enumerate}
-  \item これまでに作成した実体関連図において「弱実体」および「弱関連」になり得るものを特定し，図に反映しなさい（弱実体の部分キーには点線を付与すること）．
-  \item Orange Musicは追加サービスとして「プレミアムユーザ」サービスを開始した．「ユーザ」は追加料金を支払うことで「プレミアムユーザ」になることができる．「プレミアムユーザ」は最大100曲まで「楽曲」を「ダウンロード」でき，その際「ダウンロード日」が記録される．この汎化・継承の構造を図に追加しなさい．
-\end{enumerate}
+% \begin{enumerate}
+%   \item これまでに作成した実体関連図において「弱実体」および「弱関連」になり得るものを特定し，図に反映しなさい（弱実体の部分キーには点線を付与すること）．
+%   \item Orange Musicは追加サービスとして「プレミアムユーザ」サービスを開始した．「ユーザ」は追加料金を支払うことで「プレミアムユーザ」になることができる．「プレミアムユーザ」は最大100曲まで「楽曲」を「ダウンロード」でき，その際「ダウンロード日」が記録される．この汎化・継承の構造を図に追加しなさい．
+% \end{enumerate}
 
 \subsubsection{Q4. n項関連の設計}
 Orange Musicではさらなる機能追加として，アーティストがコンサート等のイベントで演奏した曲目（いわゆるセットリスト）を閲覧できるサービスを開始することにした．以下の要件を満たすよう，実体関連図を拡張しなさい．
@@ -1046,17 +1048,17 @@ Orange Musicではさらなる機能追加として，アーティストがコ�
 \end{framed}
 
 
-\subsubsection{Q5. n項関連（2/2）}
-図\ref{fig:cardinality_constraint}の実体関連図に，以下の設定を追加反映しなさい．
-\begin{framed}
- このオンラインショッピングサイトでは，「ユーザ」がどの「商品」を「購入」したかを記録している．
- 購入記録においては，購入した「商品」の「数量」や「購入日」の情報を記録している．
-\end{framed}
+% \subsubsection{Q5. n項関連（2/2）}
+% 図\ref{fig:cardinality_constraint}の実体関連図に，以下の設定を追加反映しなさい．
+% \begin{framed}
+%  このオンラインショッピングサイトでは，「ユーザ」がどの「商品」を「購入」したかを記録している．
+%  購入記録においては，購入した「商品」の「数量」や「購入日」の情報を記録している．
+% \end{framed}
 
-\subsubsection{Q6. 実体関連モデルから関係スキーマへの変換}
+\subsubsection{Q5. 実体関連モデルから関係スキーマへの変換}
 図\ref{fig:erd-to-schema}は，架空のショッピングサイトにおける購買履歴を管理するシステムの実体関連図です．
 この実体関連図を関係スキーマに変換しなさい．
-\begin{figure}[htb]
+\begin{figure}[!htbp]
     \centering
     \includegraphics[width=1.0\textwidth]{figure/er-model/erd-to-schema.pdf}
     \caption{購買履歴を管理するシステムの実体関連図}
