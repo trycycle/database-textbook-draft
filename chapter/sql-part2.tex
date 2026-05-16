@@ -15,8 +15,6 @@
 
 \section{準備}
 第\ref{chap:sql-part1}章と同様，以下の説明では，SQLite\footnote{\url{https://www.sqlite.org/index.html}}と解説用に作成した仮想データを用いて，SQLについて解説します．
-
-本章では，SQL解説用に著者が作成した仮想データを用います．
 用意した仮想データは，こちらのURL（\url{https://github.com/trycycle/database-textbook/raw/refs/heads/main/dataset/sql2-example.db}）よりダウンロードできます．
 ダウンロードしたファイル\graybox{sql2-example.db}は，SQLiteのデータベースファイルです．
 DB Browser for SQLiteなどのSQLiteクライアントソフトを用いて，本章用の関係データベースを操作することができます．
@@ -495,9 +493,9 @@ A \times B = \{(1, a), (1, b), (2, a), (2, b), (3, a), (3, b)\}
     FROM
         商品, 注文
     WHERE
-        --- 「商品.商品ID」とすることで，
-        --- テーブル「商品」の属性「商品ID」の値を参照することを明示．
-        --- 「注文.商品ID」とすることで，テーブル「注文」の属性「商品ID」の値を参照することを明示．
+        -- 「商品.商品ID」とすることで，
+        -- テーブル「商品」の属性「商品ID」の値を参照することを明示．
+        -- 「注文.商品ID」とすることで，テーブル「注文」の属性「商品ID」の値を参照することを明示．
         商品.商品ID = 注文.商品ID;
 
     \end{minted}
@@ -696,7 +694,7 @@ P320 & 職人仕込みフルーツグミ & 菓子 & K製菓 & 400 & 410 & O1991 
         *
     FROM
         商品
-    LEFT OUTER JOIN --- （左）外部結合に書き換え
+    LEFT OUTER JOIN -- （左）外部結合に書き換え
         注文
     USING(商品ID);
 
@@ -779,12 +777,12 @@ SQLでは\graybox{NULL}と空文字を厳格に区別しているため，扱い
     SELECT
         注文.商品ID,
         商品.商品名,
-        SUM(商品.価格 * 注文.数量) AS 売り上げ額 --- 列名に名前をつける
+        SUM(商品.価格 * 注文.数量) AS 売り上げ額 -- 列名に名前をつける
     FROM
         注文
     JOIN 商品 USING(商品ID)
     GROUP BY
-        商品ID, 商品名; --- GROUP BYでグループ化する列を指定
+        商品ID, 商品名; -- GROUP BYでグループ化する列を指定
 
     \end{minted}
     \captionsetup{name=コード}
@@ -847,7 +845,7 @@ P005 & 味わい焼肉のたれ & 23140 \\
     SELECT
         *
     FROM
-    --- 以下のカッコで囲まれたSQL文が副問い合わせ
+    -- 以下のカッコで囲まれたSQL文が副問い合わせ
     (
         SELECT
             注文.商品ID,
@@ -858,7 +856,7 @@ P005 & 味わい焼肉のたれ & 23140 \\
         JOIN 商品 USING(商品ID)
         GROUP BY
             商品ID, 商品名
-    ) AS 売上 --- 副問い合わせの結果に「売上」という名前をつける
+    ) AS 売上 -- 副問い合わせの結果に「売上」という名前をつける
     ORDER BY
         売り上げ額 DESC
     LIMIT 10;
@@ -895,7 +893,7 @@ P177 & 贅沢バゲット & 26550 \\
 
 以上のように，副問い合わせを用いることで，SQL文の中で別のSQL文の実行結果を参照することができます．
 ただし，副問い合わせはどうしてもSQL文が複雑で読みにくくなります．
-そのため，副問い合わせ箇所に\graybox{AS}修飾句で名前をつけたり，\graybox{WITH}句を使って副問い合わせ箇所を外出しするなど，少しでもSQL文を分かりやすくする工夫が重要です．
+そのため，副問い合わせ箇所に\graybox{AS}修飾句で名前をつけたり，\graybox{WITH}句を使って副問い合わせ箇所を外出しするなど，少しでもSQL文を分かりやすくする工夫が重要です\footnote{\graybox{WITH}句は副問い合わせの仲間ではありますが，厳密には共通テーブル式（CTE: Common Table Expression）と呼びます．}．
 
 コード\ref{code:subquery-sales-top10-with-with}のSQL文は，先のSQL文を\graybox{AS}修飾句や\graybox{WITH}句を使ってわかりやすく書き換えたものです．
 コード\ref{code:subquery-sales-top10}のSQL文よりも多少は読みやすくなったのではないでしょうか．
@@ -908,8 +906,8 @@ P177 & 贅沢バゲット & 26550 \\
         linenos=false,
         xleftmargin=0em]{sql}
 
-    --- 副問い合わせしたいSQL文の実行結果を抽出し，加工（集約計算）しておく
-    --- 結果には「売上」という名前を付ける
+    -- 副問い合わせしたいSQL文の実行結果を抽出し，加工（集約計算）しておく
+    -- 結果には「売上」という名前を付ける
     WITH 売上 AS (
         SELECT
             注文.商品ID,
@@ -1003,7 +1001,7 @@ P177 & 贅沢バゲット & 26550 \\
         商品
     USING(商品ID)
     WHERE
-        --- NOT EXISTSは存在しない場合Trueを，存在する場合はFalseを返す
+        -- NOT EXISTSは存在しない場合Trueを，存在する場合はFalseを返す
         NOT EXISTS (
             SELECT
                 *
@@ -1079,7 +1077,7 @@ O0008 & U074 & P075 & 7 & 2019-06-16 & 辛口アップルジュース & Gウォ�
         商品
     USING(商品ID)
     WHERE
-        --- NOT INはINの逆の意味になる
+        -- NOT INはINの逆の意味になる
         注文.商品ID NOT IN (
             SELECT
                 関西人気商品.商品ID

@@ -80,7 +80,7 @@
 このようにテーブル「注文」を分解すれば，以下のように対応することで更新時異状は発生しなくなります．
 \begin{itemize}
 \item 新商品\graybox{たきのこの里山}を追加する場合，テーブル「商品」に\graybox{(たきのこの里山, 250)}というレコードを追加
-\item 属性「注文ID」の値が\graybox{T3}の\graybox{のど飴}に関する注文をなかったことにするには，テーブル「注文履歴」から「注文ID」の値が\graybox{T3}のレコードを削除
+\item 属性「注文ID」の値が\graybox{O3}の\graybox{のど飴}に関する注文をなかったことにするには，テーブル「注文履歴」から「注文ID」の値が\graybox{O3}のレコードを削除
 \item \graybox{はーいお茶}の属性「単価」を\graybox{130円}から\graybox{120円}に修正する場合，テーブル「商品」の\graybox{はーいお茶}に関する1レコードのみを修正
 \end{itemize}
 
@@ -220,7 +220,7 @@
   &FD_3: \text{商品} \to \text{メーカー} \label{eq:sale-history-FD3}\\
   &FD_4: \text{営業担当} \to \text{営業成績} \label{eq:sale-history-FD4}
 \end{align}
-このとき，例えば関数従属性$FD_1$は，関係「営業記録」において，ユーザと商品の両方が決まれば担当者が決まるということを意味します（ユーザだけでは担当者は決まらないという意味でもあります）．
+このとき，例えば関数従属性$FD_1$は，関係「営業記録」において，ユーザと商品の両方が決まれば担当者が決まるということを意味します．
 
 
 \subsection{FDダイアグラム}
@@ -484,7 +484,7 @@ $FD_5$は営業担当者ごとに担当する商品が決まっていること�
   \label{fig:key-destructive-decomposition}
 \end{figure}
 この分解によって，以下の2つの関係スキーマが得られます．
-ここでは，正確性を期すために，関係スキーマが持つ属性集合と関数従属性の両方を記載しています（第\ref{subsec:relation}節参照）．
+ここでは，正確性を期すために，関係スキーマが持つ属性集合と関数従属性の両方を記載しています（\ref{subsec:relation}節参照）．
 \begin{align}
   &(\boldsymbol{R_{14}}(\text{営業担当}, \text{商品}), \{\text{営業担当} \to \text{商品}\}) \\
   &(\boldsymbol{R_{15}}(\text{ユーザ}, \text{営業担当}), \{\})
@@ -499,7 +499,7 @@ $FD_5$は営業担当者ごとに担当する商品が決まっていること�
 関係スキーマ$\boldsymbol{R}$において成立するどのような自明でない関数従属性$X \to Y$においても，以下の(1)(2)のいずれかを満たすとき，$\boldsymbol{R}$は第3正規形であるという．
 \begin{enumerate}
 \item $X$が$\boldsymbol{R}$の超キーである
-\item $Y$が$\boldsymbol{R}$の候補キーの要素である
+\item $Y$に含まれる各属性が$\boldsymbol{R}$の候補キーのいずれかの要素である
 \end{enumerate}
 \end{mainbox}
 1つ目はボイス・コッド正規形の条件そのものです．

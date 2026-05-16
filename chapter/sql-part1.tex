@@ -189,8 +189,8 @@ SQLによる代表的なクエリは，コード\ref{code:first-sql}に記した
     \caption{SQLの構文}
     \label{code:sql-structure}
 \end{figure}
-問い合わせを行うコード\ref{code:sql-structure}のSQL文において，問い合わせ結果に表示したい情報を指定する\graybox{SELECT}句，および問い合わせの際に参照するテーブルを指定している\graybox{FROM}句は必須です．
-これらが欠けていると，SQL文は動作しません．
+コード\ref{code:sql-structure}のようなテーブルからデータを抽出する基本的なSQL文では，\graybox{SELECT}句と\graybox{FROM}句を用います．
+\graybox{SELECT}句は問い合わせ結果には表示したい情報を，\graybox{FROM}句には参照するテーブルをそれぞれ指定します．
 一方，\graybox{[ ]}で囲まれた箇所については，書かなくてもSQLとして動作します．
 なお，\graybox{SELECT}や\graybox{FROM}，\graybox{WHERE}，\graybox{GROUP BY}，\graybox{HAVING}，\graybox{ORDER BY}，\graybox{LIMIT}といった句の意味については後ほど説明しますが，どの句も\strong{この順序で使う}必要があります．
 例えば，\graybox{HAVING}句は必ず\graybox{GROUP BY}句の後ろに書きます．
@@ -255,7 +255,7 @@ SQL文の問い合わせで得られた結果のうち，先頭の$N$行だけ�
         商品名, メーカー, 価格
     FROM
         商品
-    LIMIT 5;  --- コメント:先頭の5件のみ表示
+    LIMIT 5;  -- コメント:先頭の5件のみ表示
 
     \end{minted}
     \captionsetup{name=コード}
@@ -530,7 +530,7 @@ SQL文では改行や余分な空白は無視されます．
 \end{tipbox}
 
 \section{重複の除外}
-第\ref{chap:sql-vs-relational-data-model}節で述べたように，SQL文の実行結果には重複するレコードが含まれることがあります．
+\ref{chap:sql-vs-relational-data-model}節で述べたように，SQL文の実行結果には重複するレコードが含まれることがあります．
 例えば，テーブル「商品」の列「メーカー」に着目して，テーブル「商品」で取り扱っている商品のメーカーの一覧を抽出することを考えてみましょう．
 これまで説明してきた内容を踏まえると，コード\ref{code:sql-undistinct}のように列「メーカー」を射影するSQL文でメーカーの一覧を抽出できると考えた方がいるかもしれません．
 \begin{figure}[!htbp]
@@ -627,7 +627,7 @@ SQLでは，コード\ref{code:sql-orderby}のように\graybox{ORDER BY}の後�
         商品
     ORDER BY
         在庫数
-    LIMIT 5; --- 先頭の5件のみ表示
+    LIMIT 5; -- 先頭の5件のみ表示
 
     \end{minted}
     \captionsetup{name=コード}
@@ -668,7 +668,7 @@ P157 & 辛口シチュー & レトルト & Dフード & 620 & 3 \\
         商品
     ORDER BY
         在庫数 DESC
-    LIMIT 5; --- 先頭の5件のみ表示
+    LIMIT 5;  -- 先頭の5件のみ表示
 
     \end{minted}
     \captionsetup{name=コード}
@@ -913,7 +913,7 @@ SQL文やその実行結果を分かりやすくするために，SQLにはテ�
 
     SELECT
         メーカー,
-        AVG(在庫数) AS 平均在庫数 --- コメント: 列名を「平均在庫数」に変更
+        AVG(在庫数) AS 平均在庫数 -- コメント: 列名を「平均在庫数」に変更
     FROM
         商品
     GROUP BY
@@ -958,8 +958,8 @@ Q醤油 & 246.3 \\
 
     SELECT
         メーカー,
-        COUNT(*) AS 商品数, --- コメント: 列名を「商品数」に変更
-        AVG(価格) AS 平均価格 --- コメント: 列名を「平均価格」に変更
+        COUNT(*) AS 商品数, -- コメント: 列名を「商品数」に変更
+        AVG(価格) AS 平均価格 -- コメント: 列名を「平均価格」に変更
     FROM
         商品
     WHERE

@@ -798,7 +798,7 @@ SQLでは整数や文字列など，単純なドメイン制約を指定する�
 \item @xxxx.comの形式の文字列で終わらなければならない
 \end{itemize}
 といった複雑な制約が必要になることもあります．
-このような複雑な制約を\graybox{CREATE TABLE}文で指定するには，あらかじめ\graybox{CREATE DOMAIN}文でドメインを定義しておき，定義したドメインをテーブル定義のデータ型に指定する方法があります．
+このような複雑な制約を\graybox{CREATE TABLE}文で指定するには，あらかじめ\graybox{CREATE DOMAIN}文でドメインを定義しておき，定義したドメインをテーブル定義のデータ型に指定する方法があります\footnote{PostgreSQLなど一部のDBMSではCREATE DOMAINが使えます．本書で扱っているSQLiteではCREATE DOMAINが使えないため，CHECK制約などで代替することになります．}．
 これについては本書のレベルを超える内容になるため，ここでの説明は割愛します．
 
 \graybox{CREATE TABLE}文における列名の\graybox{[制約]}の箇所には，その列に対する様々な制約を指定することができます．
@@ -819,7 +819,7 @@ SQLでは整数や文字列など，単純なドメイン制約を指定する�
         xleftmargin=0em]{sql}
 
     CREATE TABLE ユーザ (
-        ユーザ名 VARCHAR(100) PRIMARY KEY, --- コメント: 文字列長は最大100文字とする
+        ユーザ名 VARCHAR(100) PRIMARY KEY, -- コメント: 文字列長は最大100文字とする
         氏名 VARCHAR(100) NOT NULL,
         住所 VARCHAR(100) NOT NULL,
         email VARCHAR(100) NOT NULL
@@ -852,11 +852,14 @@ SQLでは整数や文字列など，単純なドメイン制約を指定する�
         ユーザ名 VARCHAR(100) NOT NULL,
         商品ID VARCHAR(100) NOT NULL,
         登録日 DATETIME NOT NULL,
-        --- コメント: 主キーはユーザ名と商品IDの組みあわせ
+        -- コメント: 主キーはユーザ名と商品IDの組みあわせ
         PRIMARY KEY (ユーザ名, 商品ID),
-        --- テーブル「お気に入り」の「ユーザ名」は
-        --- テーブル「ユーザ」の「ユーザ名」に対する外部キーとなる
-        FOREIGN KEY (ユーザ名) REFERENCES ユーザ(ユーザ名)
+        -- テーブル「お気に入り」の「ユーザ名」は
+        -- テーブル「ユーザ」の「ユーザ名」に対する外部キーとなる
+        FOREIGN KEY (ユーザ名) REFERENCES ユーザ(ユーザ名),
+        -- テーブル「お気に入り」の「商品ID」は
+        -- テーブル「商品」の「商品ID」に対する外部キーとなる
+        FOREIGN KEY (商品ID) REFERENCES 商品(商品ID)
     );
 
     \end{minted}

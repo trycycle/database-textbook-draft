@@ -68,7 +68,7 @@ pandasの中心となる概念が\strong{DataFrame（データフレーム）}�
     行（レコード / タプル）       & 行（row）\\
     列（カラム / 属性）         & 列（column）\\
     %列（カラム / 属性）         & 列（column / series）\\
-    主キー               & インデックス（index）\\ \bottomrule
+    主キー               & インデックス（index）\footnote{pandasのインデックスは，関係データベースの主キーのような制約を自動的には保証しません}\\ \bottomrule
     \end{tabular}
     \label{tab:pandas-df-vs-table}
 \end{table}
@@ -437,10 +437,10 @@ SQLの\graybox{JOIN}に相当する操作が\graybox{merge()}です．
 \end{figure}
 
 \subsection{縦方向の結合（concat）}
-SQLの\graybox{UNION}に相当する操作が\graybox{concat()}です．
+SQLの\graybox{UNION ALL}に近い操作が\graybox{concat()}です\footnote{SQLの\graybox{UNION}は重複を削除しますが，\graybox{concat()}は重複を保持します．重複排除が必要なら追加処理が必要となります．}．
 同じ列構成を持つデータフレームを，縦に積み重ねます．
-コード\ref{code:pandas-concat}は，2024年以前の注文に関するデータが収められたデータフレーム\graybox{df\_orders\_before\_2024}と2024年以降の注文データが納められた\graybox{df\_orders\_after\_2024}が与えられたときに，2つのデータフレームを積み重ねて1つのデータフレーム\graybox{df\_orders}にするためのコードです．
-注意点としては，SQLの\graybox{UNION}と同様，\graybox{concat}の対象となるデータフレームは列構造（列の順序も含む）が同じである必要があります．
+コード\ref{code:pandas-concat}は，2024年以前の注文に関するデータが収められたデータフレーム\graybox{df\_orders\_before\_2024}と2024年以降の注文データが格納された\graybox{df\_orders\_after\_2024}が与えられたときに，2つのデータフレームを積み重ねて1つのデータフレーム\graybox{df\_orders}にするためのコードです．
+注意点としては，SQLの集合演算と同様，\graybox{concat}の対象となるデータフレームは列構造（列の順序も含む）が揃っている必要があります．
 
 \begin{figure}[!htbp]
     \begin{minted}[gobble=1,
@@ -550,7 +550,7 @@ pandasでは\graybox{get\_dummies()}という関数でカテゴリ変数を数�
 \end{figure}
 
 \subsection{数値のスケーリング}
-データの中に「価格（数百円〜数十万円）」と「在庫数（数個〜数百個）」のように，桁（スケール）が全く違う変数が混ざっていると，機械学習モデルは「桁が大きいデータの方が重要だ」と勘違いしてしまうことがあります．
+データの中に「価格（数百円〜数十万円）」と「在庫数（数個〜数百個）」のように，桁（スケール）が全く違う変数が混ざっていると，機械学習の手法によっては「桁が大きいデータの方が重要だ」と勘違いしてしまうことがあります\footnote{距離ベースの手法や正則化を伴う線形モデルなどでは，スケールの影響を受けやすいです．}．
 これを防ぐため，データのスケールを一定のルールで揃える「正規化」や「標準化」を行います．
 正規化および標準化の数学的操作は以下の通りです：
 \begin{itemize}
@@ -582,7 +582,7 @@ pandasでは\graybox{get\_dummies()}という関数でカテゴリ変数を数�
     # 正規化（MinMaxScaler）
     # 価格と在庫数を正規化し，列の情報を更新
     scaler_minmax = MinMaxScaler()
-    df_products[['価格', '在庫数']] = scaler_minmax.fit_transform(
+    df_products[['価格_正規化', '在庫数_正規化']] = scaler_minmax.fit_transform(
         df_products[['価格', '在庫数']])
 
     # 標準化（StandardScaler）
