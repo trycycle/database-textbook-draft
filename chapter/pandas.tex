@@ -1,11 +1,11 @@
 \chapter{データベースとデータ分析の橋渡し：前処理のためのpandas入門}\label{chap:pandas}
 
-第\ref{chap:sql-part1}章や第\ref{chap:sql-part2}章で学んだSQLを使えば，関係データベースから必要なデータを自由自在に抽出できるようになりました．
-これで皆さんは，巨大なデータの山から必要な情報を探し出す強力な武器を手に入れたことになります．
-
+第\ref{chap:sql-part1}章や第\ref{chap:sql-part2}章でSQLを学んだことで，関係データベースから必要なデータを自由自在に抽出できるようになりました．
+%皆さんは，巨大なデータの山から必要な情報を探し出す強力な武器を手に入れたことになります．
 しかし，実際のデータ分析やAI開発の現場では，データベースからデータを取り出した「後」に，さらに複雑な作業が待ち受けています．
-データベースから取り出したデータを，そのままデータ分析手法に渡すことはできません．
-統計モデリングや機械学習といったデータ分析の本質は「数学的な計算」であるため，入力となるデータはすべて数値の集まり（ベクトルや行列）に変換されている必要があります（図\ref{fig:to-numerical-data}）．
+一般に，データベースから取り出したデータを，そのままデータ分析手法に渡すことはできません．
+統計モデリングや機械学習といったデータ分析の本質は「数学的な計算」です．
+そのため，入力となるデータはすべて数値の集まり（ベクトルや行列）に変換されている必要があります（図\ref{fig:to-numerical-data}）．
 \begin{figure}[!htbp]
     \centering
     \includegraphics[width=0.75\textwidth]{figure/design-and-analysis-example/to-numerical-data.pdf}
@@ -13,9 +13,10 @@
     \label{fig:to-numerical-data}
 \end{figure}
 
-ところが，データベースから抽出した直後のデータには，文字列データやスケールの異なる数値など，すぐには数値として扱えないデータが多数含まれています．
+データベースから抽出した直後のデータには，文字列データやスケールの異なる数値など，すぐには数値として扱えないデータが多数含まれています．
 また，統計モデリングや機械学習といったデータ分析手法の性能を引き出すために，より高度な統計処理を適用してデータを加工する必要もあります．
-このような問題を解消するために，データ分析手法の適用に先立って\strong{前処理（Data Wrangling）}と呼ばれる作業を行います．
+
+このような問題を解消するために，データ分析手法の適用に先立って行われる作業が\strong{前処理（Data Wrangling）}です．
 一般に，データ分析や機械学習のプロジェクトにおいて，前処理にかかる時間と労力は全体の8割を占めると言われています（残りの2割が分析手法の適用と評価です）．
 
 こうした複雑で柔軟な対応が求められる前処理作業は，データベース言語であるSQLだけで完結させるのは非常に困難です．
@@ -41,7 +42,7 @@ SQLは，関係データベースという「巨大なデータの倉庫」の�
 一方，pandasは，取り出したデータを手元の計算機のメモリ上に展開し，Pythonの柔軟なプログラミング機能を駆使して「データを加工・変換する」ことに特化しています．
 この特徴を踏まえた，SQLとpandasの具体的な役割分担は以下の通りです：
 \begin{itemize}
-    \item \strong{SQL：} 大規模データからの高速な絞り込み，テーブル同士の結合，単純な集計（売上合計など）．
+    \item \strong{SQL：} 大規模データからの高速な絞り込み，テーブル同士の結合，単純な集約演算（例：売上合計）．
     \item \strong{pandas：} 欠損値（空欄）の高度な穴埋め，文字列の複雑な加工，機械学習向けのデータ変換，他ライブラリ（グラフ描画やAIモデル）との連携．
 \end{itemize}
 
@@ -83,8 +84,10 @@ pandasの中心となる概念が\strong{DataFrame（データフレーム）}�
 本章でも，これまでの章で用いてきた小売店ショッピングサイトの仮想データベース（\graybox{sql2-example.db}）を使用します．
 
 \subsection{ライブラリのインストールとインポート}\label{sec:pandas-install}
-まずは，pandasに加え，データベース接続に必要となるSQLAlchemy，データの前処理・機械学習を行うためのscikit-learnというライブラリをインストールします．
+最初に，pandasに加え，データベース接続に必要となるSQLAlchemy，データの前処理・機械学習を行うためのscikit-learnというライブラリをインストールします．
 これらライブラリのインストールが完了していない場合は，ターミナルでコード\ref{code:pandas-install}のコマンドを実行してインストールしてください．
+なお本書では，Python \graybox{3.13.11}，SQLAlchemy \graybox{2.0.49}，scikit-learn \graybox{1.8.0}，pandas \graybox{2.2.3}の環境を想定して動作確認を行っています．
+これらと異なるバージョンを使用した場合，実行結果が変わったりエラーが発生したりする可能性があるためご注意ください．
 
 \begin{figure}[!htbp]
     \begin{minted}[gobble=1,
@@ -169,7 +172,7 @@ pandasの中心となる概念が\strong{DataFrame（データフレーム）}�
 データを読み込んだら，その全体像を把握することがデータ分析の第一歩です．
 
 \subsection{データの概要確認}
-コード\ref{code:pandas-overview}に記したいくつかのメソッドを使うことで，読み込んだデータフレームのサイズや列の構成，欠損値（空欄）の有無をすばやく確認できます（実行結果\ref{fig:pandas-overview-results}参照）．
+コード\ref{code:pandas-overview}に記したいくつかのメソッドを使うことで，読み込んだデータフレームのサイズや列の構成，欠損値（空欄）の有無をすばやく確認できます（実行結果は図\ref{fig:pandas-overview-results}を参照）．
 特に\graybox{info()}メソッドは重要です．
 各列のデータの型（文字が入っているのか，数値が入っているのか等）や，データが欠損している行の数を一目で把握できます．
 データの前処理を始める前に，必ず実行する習慣をつけましょう．
@@ -183,7 +186,7 @@ pandasの中心となる概念が\strong{DataFrame（データフレーム）}�
 
     df_products.shape        # データフレームの行数と列数を返す
     df_products.columns      # 列名の一覧を返す
-    df_products.info()     # 列ごとのデータ型と非NULL値の数を表示する
+    df_products.info()       # 列ごとのデータ型と非NULL値の数を表示する
     df_products.describe()   # 数値列の基本統計量（平均，最大値など）を表示する
 
     \end{minted}
@@ -201,7 +204,7 @@ pandasの中心となる概念が\strong{DataFrame（データフレーム）}�
 
 
 \subsection{列の参照と行の絞り込み}
-SQLの\graybox{SELECT 列名}に相当する，特定の列の情報を抽出する操作は，コード\ref{code:pandas-column-select}のようにデータフレームに対して角括弧\graybox{[]}を使って行います．
+SQLの\graybox{SELECT 列名}に相当する，データフレームの特定の列の情報を抽出する操作は，コード\ref{code:pandas-column-select}のように角括弧\graybox{[]}を使って行います．
 図\ref{fig:subset_df}は，コード\ref{code:pandas-column-select}で新しく作成したデータフレーム\graybox{subset\_df}の先頭5件です．
 
 \begin{figure}[!htbp]
@@ -271,7 +274,7 @@ pandasでデータの加工や集計を行う方法を確認しておきまし�
 
 \subsection{新しい列の追加と計算}
 コード\ref{code:pandas-new-column}のように代入演算を用いることで，データフレームに新しい列を追加したり，既存の列を使った計算結果を新しい列として格納したりすることができます．
-図\ref{fig:pandas-new-column-results}は，コード\ref{code:pandas-new-column}を実行することで新たな列が追加された\graybox{df\_products}の先頭5件を表示したものです．
+図\ref{fig:pandas-new-column-results}は，コード\ref{code:pandas-new-column}を実行後に新たな列が追加された\graybox{df\_products}の先頭5件を表示したものです．
 
 \begin{figure}[!htbp]
     \begin{minted}[gobble=1,
@@ -440,7 +443,7 @@ SQLの\graybox{JOIN}に相当する操作が\graybox{merge()}です．
 SQLの\graybox{UNION ALL}に近い操作が\graybox{concat()}です\footnote{SQLの\graybox{UNION}は重複を削除しますが，\graybox{concat()}は重複を保持します．重複排除が必要なら追加処理が必要となります．}．
 同じ列構成を持つデータフレームを，縦に積み重ねます．
 コード\ref{code:pandas-concat}は，2024年以前の注文に関するデータが収められたデータフレーム\graybox{df\_orders\_before\_2024}と2024年以降の注文データが格納された\graybox{df\_orders\_after\_2024}が与えられたときに，2つのデータフレームを積み重ねて1つのデータフレーム\graybox{df\_orders}にするためのコードです．
-注意点としては，SQLの集合演算と同様，\graybox{concat}の対象となるデータフレームは列構造（列の順序も含む）が揃っている必要があります．
+注意点として，SQLの集合演算と同様，\graybox{concat}の対象となるデータフレームは列構造（列の順序も含む）が揃っている必要があります．
 
 \begin{figure}[!htbp]
     \begin{minted}[gobble=1,
@@ -469,6 +472,7 @@ SQLで抽出・結合したデータを，機械学習モデルが理解でき�
 \subsection{欠損値（NULL）の処理}
 関係データベースで外部結合（LEFT JOIN）を行った際などに発生する欠損値\graybox{NULL}は，pandasでは\graybox{NaN}（Not a Number）として表現されます．
 多くの機械学習モデルは欠損値が含まれていると計算エラーを起こしてしまうため，何らかの対処が必要です．
+
 コード\ref{code:pandas-missing-values}は，欠損値が含まれる行を削除したり，特定の列に含まれる欠損値を別の値に置換したりするコードの例です．
 SQLで2つのテーブルを外部結合して得られた\graybox{df\_merged}には，実は「数量」の値が\graybox{NaN}になっているレコードが2つ存在します．
 コード\ref{code:pandas-missing-values}の最終行で穴埋めをすると，図\ref{fig:pandas-missing-values-results}のように\graybox{df\_merged}の中身が変更されます．
@@ -524,6 +528,7 @@ SQLで2つのテーブルを外部結合して得られた\graybox{df\_merged}�
 一般にカテゴリを示すデータについては，図\ref{fig:one-hot-encoding}のように，カテゴリの数だけ新しい列（フラグ）を作り，該当する箇所に1，それ以外に0を入れる変換を行います．
 これを\strong{ダミー変数化（またはワンホットエンコーディング; one-hot encoding）}と呼びます．
 pandasでは\graybox{get\_dummies()}という関数でカテゴリ変数を数値に変換できます．
+
 コード\ref{code:pandas-dummies}は，商品に関するデータフレームの列「カテゴリ」のデータをダミー変数化するためのコード例です．
 このコードを実行すると，図\ref{fig:pandas-dummies-results}のようなデータフレームを得ることができます．
 \begin{figure}[!htbp]
@@ -608,9 +613,8 @@ pandasでは\graybox{get\_dummies()}という関数でカテゴリ変数を数�
 \section{まとめ}
 % ==============================================================
 本章では，関係データベースのSQLとPythonのpandasを連携させ，データを機械学習モデルに投入可能な状態へと引き上げる「前処理」の基礎を学びました．
-
 関係データベースを正しく設計し，SQLで必要なデータを効率よく抽出し，pandasでモデル向けに加工する ——
 この一連の流れこそが，データ分析の実務そのものです．
 
-次章では，これまでに学んだすべての知識（正規化設計，SQL，pandas）を総動員して，実践的なデータベースの設計・分析課題に挑みます．
+次章では，これまでに学んだすべての知識（関係データベース設計，SQL，pandas）を総動員して，実践的なデータベースの設計・分析課題に挑みます．
 
