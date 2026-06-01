@@ -30,7 +30,7 @@ SQLとpandasを組み合わせることで，データベースを起点とし�
 pandasの詳しい使い方や様々な前処理テクニックについては，公式ドキュメント\footnote{pandas公式ドキュメント: \url{https://pandas.pydata.org/docs/}}や参考書\cite{前処理大全}などを参照してください．
 
 \begin{notebox}{pandasの読み方と由来}
-pandasは「パンダス」と読みます．動物のパンダとは直接の関係はなく，その名前はPythonによるデータ解析（\textit{Python Data Analysis}）を略した造語に由来するという説や，計量経済学で用いられる多次元データ「パネルデータ（\textit{panel data}）」に由来するという説が有力です．
+pandasは「パンダス」と読みます．動物のパンダとは直接の関係はなく，その名前はPythonによるデータ解析（\textit{Python Data Analysis}）を略した造語に由来するという説や，計量経済学で用いられる多次元データ「パネルデータ（\textit{panel data}）」に由来するという説があります．
 \end{notebox}
 
 % ==============================================================
@@ -440,7 +440,7 @@ SQLの\graybox{JOIN}に相当する操作が\graybox{merge()}です．
 \end{figure}
 
 \subsection{縦方向の結合（concat）}
-SQLの\graybox{UNION ALL}に近い操作が\graybox{concat()}です\footnote{SQLの\graybox{UNION}は重複を削除しますが，\graybox{concat()}は重複を保持します．重複排除が必要なら追加処理が必要となります．}．
+SQLの\graybox{UNION ALL}に近い操作が\graybox{concat()}です\footnote{\graybox{UNION ALL}と\graybox{concat()}はともに重複を保持しますが，\graybox{UNION}は重複を削除します．\graybox{concat()}で重複排除が必要な場合は\graybox{drop\_duplicates()}などの追加処理が必要となります．}．
 同じ列構成を持つデータフレームを，縦に積み重ねます．
 コード\ref{code:pandas-concat}は，2024年以前の注文に関するデータが収められたデータフレーム\graybox{df\_orders\_before\_2024}と2024年以降の注文データが格納された\graybox{df\_orders\_after\_2024}が与えられたときに，2つのデータフレームを積み重ねて1つのデータフレーム\graybox{df\_orders}にするためのコードです．
 注意点として，SQLの集合演算と同様，\graybox{concat}の対象となるデータフレームは列構造（列の順序も含む）が揃っている必要があります．
@@ -555,7 +555,7 @@ pandasでは\graybox{get\_dummies()}という関数でカテゴリ変数を数�
 \end{figure}
 
 \subsection{数値のスケーリング}
-データの中に「価格（数百円〜数十万円）」と「在庫数（数個〜数百個）」のように，桁（スケール）が全く違う変数が混ざっていると，機械学習の手法によっては「桁が大きいデータの方が重要だ」と勘違いしてしまうことがあります\footnote{距離ベースの手法や正則化を伴う線形モデルなどでは，スケールの影響を受けやすいです．}．
+データの中に「価格（数百円〜数十万円）」と「在庫数（数個〜数百個）」のように，桁（スケール）が全く違う変数が混ざっていると，機械学習の手法によっては「値の絶対値が大きいデータの方が重要だ」と勘違いしてしまうことがあります\footnote{距離ベースの手法や正則化を伴う線形モデルなどでは，スケールの影響を受けやすいです．}．
 これを防ぐため，データのスケールを一定のルールで揃える「正規化」や「標準化」を行います．
 正規化および標準化の数学的操作は以下の通りです：
 \begin{itemize}

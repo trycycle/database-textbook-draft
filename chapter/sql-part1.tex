@@ -39,7 +39,7 @@ RDBMSによって，SQLで使用できる関数が異なったりすることが
 \end{warningbox}
 
 
-\section{SQLと関係データモデルの比較}\label{chap:sql-vs-relational-data-model}
+\section{SQLと関係データモデルの比較}\label{sec:sql-vs-relational-data-model}
 SQLは関係データベースを操作する言語で，それが扱うデータモデルは関係データモデルを実用的に拡張したものです．
 ところが，「実用」のSQLデータモデルと「理論」の関係データモデルでは，同様の概念が異なる用語で定義されていることがあります．
 以下，SQLと関係データモデルの用語の比較です．
@@ -190,7 +190,7 @@ SQLによる代表的なクエリは，コード\ref{code:first-sql}に記した
     \label{code:sql-structure}
 \end{figure}
 コード\ref{code:sql-structure}のようなテーブルからデータを抽出する基本的なSQL文では，\graybox{SELECT}句と\graybox{FROM}句を用います．
-\graybox{SELECT}句は問い合わせ結果には表示したい情報を，\graybox{FROM}句には参照するテーブルをそれぞれ指定します．
+\graybox{SELECT}句は問い合わせ結果に表示したい情報を，\graybox{FROM}句には参照するテーブルをそれぞれ指定します．
 一方，\graybox{[ ]}で囲まれた箇所については，書かなくてもSQLとして動作します．
 なお，\graybox{SELECT}や\graybox{FROM}，\graybox{WHERE}，\graybox{GROUP BY}，\graybox{HAVING}，\graybox{ORDER BY}，\graybox{LIMIT}といった句の意味については後ほど説明しますが，どの句も\strong{この順序で使う}必要があります．
 例えば，\graybox{HAVING}句は必ず\graybox{GROUP BY}句の後ろに書きます．
@@ -530,7 +530,7 @@ SQL文では改行や余分な空白は無視されます．
 \end{tipbox}
 
 \section{重複の除外}
-\ref{chap:sql-vs-relational-data-model}節で述べたように，SQL文の実行結果には重複するレコードが含まれることがあります．
+\ref{sec:sql-vs-relational-data-model}節で述べたように，SQL文の実行結果には重複するレコードが含まれることがあります．
 例えば，テーブル「商品」の列「メーカー」に着目して，テーブル「商品」で取り扱っている商品のメーカーの一覧を抽出することを考えてみましょう．
 これまで説明してきた内容を踏まえると，コード\ref{code:sql-undistinct}のように列「メーカー」を射影するSQL文でメーカーの一覧を抽出できると考えた方がいるかもしれません．
 \begin{figure}[!htbp]
