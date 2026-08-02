@@ -57,7 +57,7 @@ pandasの中心となる概念が\strong{DataFrame（データフレーム）}�
 データフレームは，ExcelやGoogleスプレッドシートの「シート」に相当するもので，行と列からなる2次元の表形式データを扱うためのデータ構造です．
 
 関係データベースの「テーブル（表）」と非常に似ていますが，Pythonのプログラム上で柔軟に操作できる点が特徴です．
-関係データベースとpandasの用語の対応関係を表\ref{tab:pandas-df-vs-table}にまとめました．
+関係データベースとpandasの用語の対応関係を表\ref{tab:pandas-df-vs-table}にまとめました\footnote{pandasのインデックスは，関係データベースの主キーのような制約を自動的には保証しません}．
 
 \begin{table}[!htbp]
     \centering
@@ -69,7 +69,7 @@ pandasの中心となる概念が\strong{DataFrame（データフレーム）}�
     行（レコード / タプル）       & 行（row）\\
     列（カラム / 属性）         & 列（column）\\
     %列（カラム / 属性）         & 列（column / series）\\
-    主キー               & インデックス（index）\footnote{pandasのインデックスは，関係データベースの主キーのような制約を自動的には保証しません}\\ \bottomrule
+    主キー               & インデックス（index）\\ \bottomrule
     \end{tabular}
     \label{tab:pandas-df-vs-table}
 \end{table}

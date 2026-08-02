@@ -41,7 +41,7 @@
 \end{framed}
 
 さあ，皆さんも山畑さんになりきったつもりでデータ分析に取り組んでみましょう．
-こちらのURL（\url{https://github.com/trycycle/database-textbook/raw/refs/heads/main/dataset/purchase\_small.xlsx}）には，山畑さんが分析しようとしているExcelファイルがあります．
+こちらのURL（\url{https://github.com/trycycle/database-textbook/raw/refs/heads/main/dataset/purchase_small.xlsx}）には，山畑さんが分析しようとしているExcelファイルがあります．
 まずはURLからExcelファイル（\graybox{purchase\_small.xlsx}）をダウンロードし，中身を確認してみてください\footnote{データはすべて架空のものです．}．
 
 \begin{figure}[!htbp]
@@ -126,11 +126,11 @@ Excelはビジネスに必要な計算機能が一通り備わっています．
 90万行以上もあるExcelシートは，まさに「巨大なデータのかたまり」になっています．
 
 さあ，ここからは再度，山畑さんになりきってこのExcelシートを用いたデータ分析に取り組んでみましょう．
-こちらのURL（\url{https://github.com/trycycle/database-textbook/raw/refs/heads/main/dataset/purchase\_large.xlsx}）には，上記ケース2で山畑さんが分析しようとしているExcelファイルがあります\footnote{繰り返しになりますが，データはすべて架空のものです．}．
+こちらのURL（\url{https://github.com/trycycle/database-textbook/raw/refs/heads/main/dataset/purchase_large.xlsx}）には，上記ケース2で山畑さんが分析しようとしているExcelファイルがあります\footnote{繰り返しになりますが，データはすべて架空のものです．}．
 まずは，そのExcelファイル（\graybox{purchase\_large.xlsx}）をダウンロードし，ファイルを開いてください．
 このExcelファイルのシートは，先ほどのケース1で用いたExcelシートと同じ構造（項目）となっています．
 異なるのは，データの量（行数）だけです．
-もし，ファイルがうまく開けない場合は，こちらのURL（\url{https://github.com/trycycle/database-textbook/raw/refs/heads/main/dataset/purchase\_medium.xlsx}）からダウンロードできるExcelファイル（\graybox{purchase\_medium.xlsx}）を用いてください．
+もし，ファイルがうまく開けない場合は，こちらのURL（\url{https://github.com/trycycle/database-textbook/raw/refs/heads/main/dataset/purchase_medium.xlsx}）からダウンロードできるExcelファイル（\graybox{purchase\_medium.xlsx}）を用いてください．
 ダウンロードが完了したら，ケース1と同じタスク（Q1〜Q4）に取り組んでみてください．
 同じタスクでもデータが増えたことで異なる体験が得られるはずです．
 
@@ -155,7 +155,7 @@ PCのメモリは作業用机のようなものです．
 そのため，Q1タスクでは，Excelの検索機能を使って「岡田 真綾」さんの行を検索するにしても，データが多すぎて何度も「Enterキー」を押す羽目になります（しかも何回押したか分からなくなる）．
 また，ケース2のExcelデータにはデータの誤記や不適切なフォーマットが混入しています．
 たとえば，\graybox{sale}の列に半角数字と全角数字が混在しています\footnote{一般に，計算機は半角文字（例: 123，ABC）と全角文字（例: １２３，ＡＢＣ）を区別します．}．
-\graybox{purchased\_at}列の日付は，「年\/月\/日」というフォーマットと「年-月-日」というフォーマットのデータが混在しています．
+\graybox{purchased\_at}列の日付は，「年/月/日」というフォーマットと「年-月-日」というフォーマットのデータが混在しています．
 そのため，Q3タスクでは，売り上げ金額の正しい合計値が得られません（\graybox{SUM}関数は全角数字を無視する）．
 さらに，\graybox{product}列では「セル（マス目）1つにつき商品1つ」となっておらず，ある顧客が同時に複数の商品を購入した場合，1つのセルにカンマ区切りで複数の商品が登録されてしまっています．
 そのため，Q4タスクではピボットテーブルを使っても，商品ごとの集計が行えなくなっています．
