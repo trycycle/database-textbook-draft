@@ -442,8 +442,9 @@ SQLの\graybox{JOIN}に相当する操作が\graybox{merge()}です．
 \subsection{縦方向の結合（concat）}
 SQLの\graybox{UNION ALL}に近い操作が\graybox{concat()}です\footnote{\graybox{UNION ALL}と\graybox{concat()}はともに重複を保持しますが，\graybox{UNION}は重複を削除します．\graybox{concat()}で重複排除が必要な場合は\graybox{drop\_duplicates()}などの追加処理が必要となります．}．
 同じ列構成を持つデータフレームを，縦に積み重ねます．
-コード\ref{code:pandas-concat}は，2024年以前の注文に関するデータが収められたデータフレーム\graybox{df\_orders\_before\_2024}と2024年以降の注文データが格納された\graybox{df\_orders\_after\_2024}が与えられたときに，2つのデータフレームを積み重ねて1つのデータフレーム\graybox{df\_orders}にするためのコードです．
-注意点として，SQLの集合演算と同様，\graybox{concat}の対象となるデータフレームは列構造（列の順序も含む）が揃っている必要があります．
+コード\ref{code:pandas-concat}は，2024年より前の注文に関するデータが収められたデータフレーム\graybox{df\_orders\_before\_2024}と2024年以降の注文データが格納された\graybox{df\_orders\_after\_2024}が与えられたときに，2つのデータフレームを積み重ねて1つのデータフレーム\graybox{df\_orders}にするためのコードです．
+注意点として，SQLの集合演算と同様，\graybox{concat}の対象となるデータフレームは列構造（列の順序も含む）が揃っていることが前提です．
+列名が一致しない場合はエラーにならず，列名で整列されたうえで存在しない部分が\graybox{NaN}で埋められるため注意が必要です．
 
 \begin{figure}[!htbp]
     \begin{minted}[gobble=1,
@@ -539,6 +540,7 @@ pandasでは\graybox{get\_dummies()}という関数でカテゴリ変数を数�
         xleftmargin=0em]{python}
 
     # 「カテゴリ」列をダミー変数化する
+    # df_productsはデータベースから読み込み直したものを想定
     df_encoded = pd.get_dummies(df_products, columns=['カテゴリ'], dtype='int')
 
     \end{minted}
@@ -574,6 +576,7 @@ pandasでは\graybox{get\_dummies()}という関数でカテゴリ変数を数�
 これらの処理は直接計算することも可能ですが，機械学習ライブラリ\graybox{scikit-learn}の\graybox{MinMaxScaler}や\graybox{StandardScaler}を使うと，複数の列に対して効率的に適用できます．
 コード\ref{code:pandas-sklearn-scaling}は，商品に関するデータフレームの列「価格」「在庫数」の値を正規化もしくは標準化するコード例です．
 図\ref{fig:pandas-standardization-results}は，コード\ref{code:pandas-sklearn-scaling}の標準化の箇所を実行した結果得られるデータフレーム\graybox{df\_products}の中身となります．
+なお，図の結果は，新規に読み込んだ\graybox{df\_products}に対する実行結果です．
 
 \begin{figure}[!htbp]
     \begin{minted}[gobble=1,
@@ -585,7 +588,7 @@ pandasでは\graybox{get\_dummies()}という関数でカテゴリ変数を数�
     from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
     # 正規化（MinMaxScaler）
-    # 価格と在庫数を正規化し，列の情報を更新
+    # 価格と在庫数を正規化し，新たな列を追加
     scaler_minmax = MinMaxScaler()
     df_products[['価格_正規化', '在庫数_正規化']] = scaler_minmax.fit_transform(
         df_products[['価格', '在庫数']])
